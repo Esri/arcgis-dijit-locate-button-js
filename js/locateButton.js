@@ -31,7 +31,7 @@ function (
         declaredClass: "modules.locateButton",
         templateString: dijitTemplate,
         options: {
-            theme: "default",
+            theme: "locateButton",
             map: null,
             visible: true,
             locateLOD: 16,
@@ -65,7 +65,7 @@ function (
             this.watch("visible", this._visible);
             // classes
             this._css = {
-                container: "locateButton",
+                container: "container",
                 locate: "zoomLocateButton",
                 loading: "loading"
             };
