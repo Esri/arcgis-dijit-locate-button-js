@@ -1,12 +1,38 @@
-# arcgis-dijit-sample-js
+# arcgis-dijit-locate-button-js
 
 ## Features
-An example Dijit boilerplate for the ArcGIS API for JavaScript
+A simple dijit button that when clicked navigates to the users current location using HTML5 Geolocation if available.
 
-[View Demo](http://driskull.github.com/arcgis-dijit-sample-js/)
+![App](https://raw.github.com/driskull/arcgis-dijit-locate-button-js/master/images/demo.png)
+
+[View Demo](http://driskull.github.com/arcgis-dijit-locate-button-js/)
 
 ## Instructions
-See the powerpoint in the root directory for more information. This demo theater was presented at the 2013 Developer Summit in Palm Springs CA.
+
+Basic use
+
+    var myWidget = new locateButton({
+        map: myMap,
+    }, "locateButton");
+    myWidget.startup();
+    
+All options
+    
+     var myWidget = new locateButton({
+        theme: "locateButton", // optionally specify a custom theme to style yourself
+        map: myMap, // the map to use for the button
+        visible: true, // show the button by default
+        locateLOD: 16, // when clicked, zoom to this level of detail
+        showPointer: true, // show a point symbol when zoomed to the users location
+        pointerGraphic: new Graphic(null, new PictureMarkerSymbol('images/bluedot_retina.png', 21, 21)), // custom symbol to show
+        locateSettings: { // html5 geolocation settings
+            maximumAge: 3000,
+            timeout: 1000,
+            enableHighAccuracy: true
+        }
+    }, "locateButton");
+    myWidget.startup();
+
 
  [New to Github? Get started here.](https://github.com/)
 
@@ -47,5 +73,5 @@ limitations under the License.
 
 A copy of the license is available in the repository's [license.txt](https://raw.github.com/Esri/geocoder-search-widget-js/master/license.txt) file.
 
-[](Esri Tags: ArcGIS JavaScript API Dijit module boilerplate Widget Public)
+[](Esri Tags: ArcGIS JavaScript API Dijit module swipe Widget Public swipemap LayerSwipe)
 [](Esri Language: JavaScript)
