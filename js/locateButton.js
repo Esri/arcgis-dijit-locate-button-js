@@ -36,7 +36,6 @@ function (
             theme: "locateButton",
             map: null,
             visible: true,
-            locateLOD: 16,
             showPointer: true,
             pointerGraphic: new Graphic(null, new PictureMarkerSymbol('images/bluedot_retina.png', 21, 21)),
             locateSettings: {
@@ -57,7 +56,6 @@ function (
             }
             // properties
             this.set("map", this.options.map);
-            this.set("locateLOD", this.options.locateLOD);
             this.set("theme", this.options.theme);
             this.set("visible", this.options.visible);
             this.set("showPointer", this.options.showPointer);
@@ -118,10 +116,12 @@ function (
                     if (position) {
                         var latitude = position.coords.latitude;
                         var longitude = position.coords.longitude;
+                        var accuracy = position.coords.accuracy || 50000;
                         // set point
                         var pt = webMercatorUtils.geographicToWebMercator(new Point(longitude, latitude, new SpatialReference(4326)));
                         if(pt){
-                            return this.map.centerAndZoom(pt, this.get("locateLOD")).then(lang.hitch(this, function(){
+                            this.map.setScale(accuracy);
+                            return this.map.centerAt(pt).then(lang.hitch(this, function(){
                                 if(this.get("showPointer")){
                                     this.clear();
                                 }
@@ -134,7 +134,7 @@ function (
                                     this.map.graphics.add(this.get("pointerGraphic"));
                                 }
                                 this._hideLoading();
-                            }));    
+                            })); 
                         }
                         else{
                             this._hideLoading();
