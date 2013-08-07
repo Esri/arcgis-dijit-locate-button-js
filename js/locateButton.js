@@ -1,6 +1,7 @@
 define([
     "dojo/Evented",
     "dojo/_base/declare",
+    "dojo/_base/lang",
     "dijit/_WidgetBase",
     "dijit/_OnDijitClickMixin",
     "dijit/_TemplatedMixin",
@@ -20,6 +21,7 @@ define([
 function (
     Evented,
     declare,
+    lang,
     _WidgetBase, _OnDijitClickMixin, _TemplatedMixin,
     on,
     dijitTemplate, i18n,
@@ -72,21 +74,20 @@ function (
         },
         // start widget. called by user
         startup: function() {
-            var _self = this;
             // map not defined
-            if (!_self.map) {
-                _self.destroy();
+            if (!this.map) {
+                this.destroy();
                 return new Error('map required');
             }
             // map domNode
-            _self._mapNode = dom.byId(_self.map.id);
+            this._mapNode = dom.byId(this.map.id);
             // when map is loaded
-            if (_self.map.loaded) {
-                _self._init();
+            if (this.map.loaded) {
+                this._init();
             } else {
-                on(_self.map, "load", function() {
-                    _self._init();
-                });
+                on(this.map, "load", lang.hitch(this, function() {
+                    this._init();
+                }));
             }
         },
         // connections/subscriptions will be cleaned up during the destroy() lifecycle phase
@@ -106,53 +107,51 @@ function (
         /* Public Functions */
         /* ---------------- */
         clear: function(){
-            var _self = this;
-            if(_self.get("pointerGraphic")){
-                _self.map.graphics.remove(_self.get("pointerGraphic"));
+            if(this.get("pointerGraphic")){
+                this.map.graphics.remove(this.get("pointerGraphic"));
             }
         },
         locate: function() {
-            var _self = this;
-            _self._showLoading();
+            this._showLoading();
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
+                navigator.geolocation.getCurrentPosition(lang.hitch(this, function(position) {
                     if (position) {
                         var latitude = position.coords.latitude;
                         var longitude = position.coords.longitude;
                         // set point
                         var pt = webMercatorUtils.geographicToWebMercator(new Point(longitude, latitude, new SpatialReference(4326)));
                         if(pt){
-                            return _self.map.centerAndZoom(pt, _self.get("locateLOD")).then(function(){
-                                if(_self.get("showPointer")){
-                                    _self.clear();
+                            return this.map.centerAndZoom(pt, this.get("locateLOD")).then(lang.hitch(this, function(){
+                                if(this.get("showPointer")){
+                                    this.clear();
                                 }
-                                var attributes = _self.get("pointerGraphic").attributes || {};
+                                var attributes = this.get("pointerGraphic").attributes || {};
                                 attributes.position = position;
-                                var newGraphic = _self.get("pointerGraphic").setGeometry(pt).setAttributes(attributes);
-                                _self.set("pointerGraphic", newGraphic);
-                                _self.onLocate();
-                                if(_self.get("showPointer")){
-                                    _self.map.graphics.add(_self.get("pointerGraphic"));
+                                var newGraphic = this.get("pointerGraphic").setGeometry(pt).setAttributes(attributes);
+                                this.set("pointerGraphic", newGraphic);
+                                this.onLocate();
+                                if(this.get("showPointer")){
+                                    this.map.graphics.add(this.get("pointerGraphic"));
                                 }
-                                _self._hideLoading();
-                            });    
+                                this._hideLoading();
+                            }));    
                         }
                         else{
-                            _self._hideLoading();
+                            this._hideLoading();
                             return new Error('Invalid point');
                         }
                     }
                     else{
-                        _self._hideLoading();
+                        this._hideLoading();
                         return new Error('Invalid position');
                     }
-                }, function(err) {
-                    _self._hideLoading();
+                }), lang.hitch(this, function(err) {
+                    this._hideLoading();
                     return err;
-                }, _self.options.locateSettings);
+                }), this.options.locateSettings);
             }
             else{
-                _self._hideLoading();
+                this._hideLoading();
                 return new Error('geolocation unsupported');
             }
         },
@@ -172,22 +171,19 @@ function (
             domClass.remove(this._locateNode, this._css.loading);
         },
         _init: function() {
-            var _self = this;
-            _self._visible();
-            _self.onLoad();
+            this._visible();
+            this.onLoad();
         },
         _updateThemeWatch: function(attr, oldVal, newVal) {
-            var _self = this;
-            domClass.remove(_self.domNode, oldVal);
-            domClass.add(_self.domNode, newVal);
+            domClass.remove(this.domNode, oldVal);
+            domClass.add(this.domNode, newVal);
         },
         _visible: function(){
-            var _self = this;
-            if(_self.get("visible")){
-                domStyle.set(_self.domNode, 'display', 'block');
+            if(this.get("visible")){
+                domStyle.set(this.domNode, 'display', 'block');
             }
             else{
-                domStyle.set(_self.domNode, 'display', 'none');
+                domStyle.set(this.domNode, 'display', 'none');
             }
         }
     });
