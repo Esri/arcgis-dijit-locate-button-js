@@ -38,6 +38,7 @@ function (
             visible: true,
             showPointer: true,
             pointerGraphic: new Graphic(null, new PictureMarkerSymbol('images/bluedot_retina.png', 21, 21)),
+            scale: null,
             locateSettings: {
                 maximumAge: 3000,
                 timeout: 1000,
@@ -58,6 +59,7 @@ function (
             this.set("map", this.options.map);
             this.set("theme", this.options.theme);
             this.set("visible", this.options.visible);
+            this.set("scale", this.options.scale);
             this.set("showPointer", this.options.showPointer);
             this.set("pointerGraphic", this.options.pointerGraphic);
             // listeners
@@ -116,11 +118,11 @@ function (
                     if (position) {
                         var latitude = position.coords.latitude;
                         var longitude = position.coords.longitude;
-                        var accuracy = position.coords.accuracy || 50000;
+                        var scale = this.get("scale") || position.coords.accuracy || 50000;
                         // set point
                         var pt = webMercatorUtils.geographicToWebMercator(new Point(longitude, latitude, new SpatialReference(4326)));
                         if(pt){
-                            this.map.setScale(accuracy);
+                            this.map.setScale(scale);
                             return this.map.centerAt(pt).then(lang.hitch(this, function(){
                                 if(this.get("showPointer")){
                                     this.clear();
