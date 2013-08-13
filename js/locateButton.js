@@ -39,7 +39,7 @@ function (
             showPointer: true,
             pointerGraphic: new Graphic(null, new PictureMarkerSymbol('images/bluedot_retina.png', 21, 21)),
             scale: null,
-            locateSettings: {
+            geolocationOptions: {
                 maximumAge: 3000,
                 timeout: 1000,
                 enableHighAccuracy: true
@@ -150,7 +150,7 @@ function (
                 }), lang.hitch(this, function(err) {
                     this._hideLoading();
                     return err;
-                }), this.options.locateSettings);
+                }), this.options.geolocationOptions);
             }
             else{
                 this._hideLoading();
