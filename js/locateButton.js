@@ -7,8 +7,8 @@ define([
     "dijit/_TemplatedMixin",
     "dojo/on",
     // load template
-    "dojo/text!./templates/locateButton.html",
-    "dojo/i18n!./nls/locateButton",
+    "dojo/text!./templates/LocateButton.html",
+    "dojo/i18n!./nls/LocateButton",
     "dojo/dom",
     "dojo/dom-class",
     "dojo/dom-style",
@@ -16,7 +16,8 @@ define([
     "esri/geometry/Point",
     "esri/SpatialReference",
     "esri/graphic",
-    "esri/symbols/PictureMarkerSymbol"
+    "esri/symbols/PictureMarkerSymbol",
+    "esri/layers/GraphicsLayer"
 ],
 function (
     Evented,
@@ -27,17 +28,19 @@ function (
     dijitTemplate, i18n,
     dom, domClass, domStyle,
     webMercatorUtils, Point, SpatialReference,
-    Graphic, PictureMarkerSymbol
+    Graphic, PictureMarkerSymbol,
+    GraphicsLayer
 ) {
     return declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
-        declaredClass: "modules.locateButton",
+        declaredClass: "esri.dijit.LocateButton",
         templateString: dijitTemplate,
         options: {
-            theme: "locateButton",
+            theme: "LocateButton",
             map: null,
             visible: true,
-            showPointer: true,
-            pointerGraphic: new Graphic(null, new PictureMarkerSymbol('images/bluedot_retina.png', 21, 21)),
+            highlightLocation: true,
+            symbol: new PictureMarkerSymbol(require.toUrl("esri/dijit") + '/images/bluedot_retina.png', 21, 21),
+            infoTemplate: null,
             scale: null,
             geolocationOptions: {
                 maximumAge: 3000,
@@ -60,8 +63,9 @@ function (
             this.set("theme", this.options.theme);
             this.set("visible", this.options.visible);
             this.set("scale", this.options.scale);
-            this.set("showPointer", this.options.showPointer);
-            this.set("pointerGraphic", this.options.pointerGraphic);
+            this.set("highlightLocation", this.options.highlightLocation);
+            this.set("symbol", this.options.symbol);
+            this.set("infoTemplate", this.options.infoTemplate);
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
@@ -77,10 +81,10 @@ function (
             // map not defined
             if (!this.map) {
                 this.destroy();
-                return new Error('map required');
+                console.log('map required');
             }
-            // map domNode
-            this._mapNode = dom.byId(this.map.id);
+            this._graphics = new GraphicsLayer();
+            this.map.addLayer(this._graphics);
             // when map is loaded
             if (this.map.loaded) {
                 this._init();
@@ -99,17 +103,16 @@ function (
         /* ---------------- */
         onLoad: function() {
             this.set("loaded", true);
+            this.emit("load", {});
         },
-        onLocate: function(){
-            this.emit("located", this.get("pointerGraphic"));
+        onLocate: function(e){
+            this.emit("locate", e);
         },
         /* ---------------- */
         /* Public Functions */
         /* ---------------- */
         clear: function(){
-            if(this.get("pointerGraphic")){
-                this.map.graphics.remove(this.get("pointerGraphic"));
-            }
+            this._graphics.clear();
         },
         locate: function() {
             this._showLoading();
@@ -124,28 +127,28 @@ function (
                         if(pt){
                             this.map.setScale(scale);
                             return this.map.centerAt(pt).then(lang.hitch(this, function(){
-                                if(this.get("showPointer")){
+                                if(this.get("highlightLocation")){
                                     this.clear();
                                 }
-                                var attributes = this.get("pointerGraphic").attributes || {};
-                                attributes.position = position;
-                                var newGraphic = this.get("pointerGraphic").setGeometry(pt).setAttributes(attributes);
-                                this.set("pointerGraphic", newGraphic);
-                                this.onLocate();
-                                if(this.get("showPointer")){
-                                    this.map.graphics.add(this.get("pointerGraphic"));
+                                var attributes = {
+                                    position: position
+                                };
+                                var graphic = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
+                                this.onLocate({graphic: graphic});
+                                if(this.get("highlightLocation")){
+                                    this._graphics.add(graphic);
                                 }
                                 this._hideLoading();
                             })); 
                         }
                         else{
                             this._hideLoading();
-                            return new Error('Invalid point');
+                            console.log('Invalid point');
                         }
                     }
                     else{
                         this._hideLoading();
-                        return new Error('Invalid position');
+                        console.log('Invalid position');
                     }
                 }), lang.hitch(this, function(err) {
                     this._hideLoading();
@@ -154,7 +157,7 @@ function (
             }
             else{
                 this._hideLoading();
-                return new Error('geolocation unsupported');
+                console.log('geolocation unsupported');
             }
         },
         show: function(){

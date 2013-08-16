@@ -1,8 +1,8 @@
-.locateButton span {
+.LocateButton span {
 	display:none;
 }
 
-.locateButton .zoomLocateButton {
+.LocateButton .zoomLocateButton {
 	padding:2px;
 	width:30px;
 	height:30px;
@@ -22,20 +22,20 @@
 	background-repeat:no-repeat;
 }
 
-.locateButton .loading {
+.LocateButton .loading {
 	background-image:url(../images/spinner.gif);
 }
 
-.locateButton .zoomHomeButton:hover {
+.LocateButton .zoomHomeButton:hover {
     background-color: #333;
     background-color: rgba(102,102,102,0.90);
 }
 
-.locateButton .zoomHomeButton:active {
+.LocateButton .zoomHomeButton:active {
     background-color: #ccc;
     background-color: rgba(102,102,102,0.60);
 }
 
-.locateButton .loading {
+.LocateButton .loading {
 	background-image:url(../images/spinner.gif);
 }
