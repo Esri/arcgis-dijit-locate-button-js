@@ -101,13 +101,8 @@ function (
         /* ---------------- */
         /* Public Events */
         /* ---------------- */
-        onLoad: function() {
-            this.set("loaded", true);
-            this.emit("load", {});
-        },
-        onLocate: function(e){
-            this.emit("locate", e);
-        },
+        // locate
+        // load
         /* ---------------- */
         /* Public Functions */
         /* ---------------- */
@@ -134,7 +129,7 @@ function (
                                     position: position
                                 };
                                 var graphic = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
-                                this.onLocate({graphic: graphic});
+                                this.emit("locate", {graphic: graphic});
                                 if(this.get("highlightLocation")){
                                     this._graphics.add(graphic);
                                 }
@@ -177,7 +172,8 @@ function (
         },
         _init: function() {
             this._visible();
-            this.onLoad();
+            this.set("loaded", true);
+            this.emit("load", {});
         },
         _updateThemeWatch: function(attr, oldVal, newVal) {
             domClass.remove(this.domNode, oldVal);
