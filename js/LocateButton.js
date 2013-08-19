@@ -81,7 +81,7 @@ function (
             // map not defined
             if (!this.map) {
                 this.destroy();
-                console.log('map required');
+                console.log('LocateButton::map required');
             }
             this._graphics = new GraphicsLayer();
             this.map.addLayer(this._graphics);
@@ -138,12 +138,12 @@ function (
                         }
                         else{
                             this._hideLoading();
-                            console.log('Invalid point');
+                            console.log('LocateButton::Invalid point');
                         }
                     }
                     else{
                         this._hideLoading();
-                        console.log('Invalid position');
+                        console.log('LocateButton::Invalid position');
                     }
                 }), lang.hitch(this, function(err) {
                     this._hideLoading();
@@ -152,7 +152,7 @@ function (
             }
             else{
                 this._hideLoading();
-                console.log('geolocation unsupported');
+                console.log('LocateButton::geolocation unsupported');
             }
         },
         show: function(){
