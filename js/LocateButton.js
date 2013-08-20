@@ -9,8 +9,8 @@ define([
     "dijit/_TemplatedMixin",
     "dojo/on",
     // load template
-    "dojo/text!./templates/LocateButton.html",
-    "dojo/i18n!./nls/LocateButton",
+    "dojo/text!zesri/dijit/templates/LocateButton.html",
+    "dojo/i18n!zesri/nls/jsapi",
     "dojo/dom-class",
     "dojo/dom-style",
     "esri/geometry/webMercatorUtils",
@@ -41,7 +41,7 @@ function (
             map: null,
             visible: true,
             highlightLocation: true,
-            symbol: new PictureMarkerSymbol(require.toUrl("esri/dijit") + '/images/bluedot_retina.png', 21, 21),
+            symbol: new PictureMarkerSymbol(require.toUrl("esri/dijit") + '/images/blue-dot.png', 21, 21),
             infoTemplate: null,
             scale: null,
             geolocationOptions: {
