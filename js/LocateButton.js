@@ -33,7 +33,7 @@ function (
     Graphic, PictureMarkerSymbol,
     GraphicsLayer
 ) {
-    var Widget = declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
+    var Widget = declare([Evented, _WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
         declaredClass: "esri.dijit.LocateButton",
         templateString: dijitTemplate,
         options: {
@@ -131,11 +131,11 @@ function (
                                     position: position
                                 };
                                 var graphic = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
-                                this.emit("locate", {graphic: graphic});
                                 if(this.get("highlightLocation")){
                                     this._graphics.add(graphic);
                                 }
                                 this._hideLoading();
+                                this.emit("locate", {graphic: graphic});
                             })); 
                         }
                         else{
