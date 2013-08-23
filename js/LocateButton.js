@@ -33,7 +33,7 @@ function (
     Graphic, PictureMarkerSymbol,
     GraphicsLayer
 ) {
-    var Widget = declare([Evented, _WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
+    var Widget = declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin, Evented], {
         declaredClass: "esri.dijit.LocateButton",
         templateString: dijitTemplate,
         options: {
