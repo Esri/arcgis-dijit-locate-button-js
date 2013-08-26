@@ -135,7 +135,7 @@ function (
                                     this._graphics.add(graphic);
                                 }
                                 this._hideLoading();
-                                this.emit("locate", {graphic: graphic});
+                                this.emit("locate", {graphic: graphic, scale: scale, position: position});
                             })); 
                         }
                         else{
