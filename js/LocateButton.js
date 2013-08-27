@@ -73,7 +73,7 @@ function (
             this.watch("visible", this._visible);
             // classes
             this._css = {
-                container: "locateCon",
+                container: "locateContainer",
                 locate: "zoomLocateButton",
                 loading: "loading"
             };
