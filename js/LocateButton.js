@@ -8,6 +8,7 @@ define([
     "dijit/a11yclick",
     "dijit/_TemplatedMixin",
     "dojo/on",
+    "dojo/Deferred",
     // load template
     "dojo/text!zesri/dijit/templates/LocateButton.html",
     "dojo/i18n!zesri/nls/jsapi",
@@ -27,6 +28,7 @@ function (
     has, esriNS,
     _WidgetBase, a11yclick, _TemplatedMixin,
     on,
+    Deferred,
     dijitTemplate, i18n,
     domClass, domStyle,
     webMercatorUtils, Point, SpatialReference,
@@ -46,7 +48,7 @@ function (
             scale: null,
             geolocationOptions: {
                 maximumAge: 3000,
-                timeout: 1000,
+                timeout: 5000,
                 enableHighAccuracy: true
             }
         },
@@ -68,6 +70,7 @@ function (
             this.set("highlightLocation", this.options.highlightLocation);
             this.set("symbol", this.options.symbol);
             this.set("infoTemplate", this.options.infoTemplate);
+            this.set("geolocationOptions", this.options.geolocationOptions);
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
@@ -119,50 +122,76 @@ function (
             this._graphics.clear();
         },
         locate: function() {
+            var def = new Deferred();
+            // add loading class
             this._showLoading();
+            // geolocation support
             if (navigator.geolocation) {
+                // get location
                 navigator.geolocation.getCurrentPosition(lang.hitch(this, function(position) {
+                    // position returned
                     if (position) {
+                        // point info
                         var latitude = position.coords.latitude;
                         var longitude = position.coords.longitude;
+                        // scale info
                         var scale = this.get("scale") || position.coords.accuracy || 50000;
                         // set point
                         var pt = webMercatorUtils.geographicToWebMercator(new Point(longitude, latitude, new SpatialReference(4326)));
                         if(pt){
+                            // set scale
                             this.map.setScale(scale);
-                            return this.map.centerAt(pt).then(lang.hitch(this, function(){
+                            // center on point
+                            this.map.centerAt(pt).then(lang.hitch(this, function(){
+                                // highlight enabled
                                 if(this.get("highlightLocation")){
                                     this.clear();
                                 }
+                                // graphic attributes
                                 var attributes = {
                                     position: position
                                 };
+                                // create graphic
                                 var graphic = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
+                                // highlight enabled
                                 if(this.get("highlightLocation")){
                                     this._graphics.add(graphic);
                                 }
+                                // hide loading class
                                 this._hideLoading();
-                                this.emit("locate", {graphic: graphic, scale: scale, position: position});
-                            })); 
+                                // set event
+                                var locateEvt = {graphic: graphic, scale: scale, position: position};
+                                this.emit("locate", locateEvt);
+                                def.resolve(locateEvt);
+                            }));
                         }
                         else{
+                            // remove loading class
                             this._hideLoading();
+                            def.reject('LocateButton::Invalid point');
                             console.log('LocateButton::Invalid point');
                         }
                     }
                     else{
+                        // remove loading class
                         this._hideLoading();
                         console.log('LocateButton::Invalid position');
+                        def.reject('LocateButton::Invalid position');
                     }
                 }), lang.hitch(this, function(err) {
+                    // remove loading class
                     this._hideLoading();
-                    return err;
-                }), this.options.geolocationOptions);
+                    var errorMessage = 'LocateButton::' + err.code + ":" + err.message;
+                    console.log(errorMessage);
+                    def.reject(errorMessage);
+                }), this.get('geolocationOptions'));
             }
             else{
                 this._hideLoading();
                 console.log('LocateButton::geolocation unsupported');
+                def.reject('LocateButton::geolocation unsupported');
             }
+            return def.promise;
         },
         show: function(){
             this.set("visible", true);  
