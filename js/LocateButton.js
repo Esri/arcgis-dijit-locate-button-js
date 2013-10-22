@@ -5,7 +5,7 @@ define([
     "dojo/has",
     "esri/kernel",
     "dijit/_WidgetBase",
-    "dijit/_OnDijitClickMixin",
+    "dijit/a11yclick",
     "dijit/_TemplatedMixin",
     "dojo/on",
     // load template
@@ -25,7 +25,7 @@ function (
     declare,
     lang,
     has, esriNS,
-    _WidgetBase, _OnDijitClickMixin, _TemplatedMixin,
+    _WidgetBase, a11yclick, _TemplatedMixin,
     on,
     dijitTemplate, i18n,
     domClass, domStyle,
@@ -33,7 +33,7 @@ function (
     Graphic, PictureMarkerSymbol,
     GraphicsLayer
 ) {
-    var Widget = declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin, Evented], {
+    var Widget = declare([_WidgetBase, _TemplatedMixin, Evented], {
         declaredClass: "esri.dijit.LocateButton",
         templateString: dijitTemplate,
         options: {
@@ -77,6 +77,12 @@ function (
                 locate: "zoomLocateButton",
                 loading: "loading"
             };
+        },
+
+        postCreate: function() {
+            this.own(
+                on(this._locateNode, a11yclick, lang.hitch(this, this.locate))
+            );
         },
         // start widget. called by user
         startup: function() {
