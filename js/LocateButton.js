@@ -78,8 +78,9 @@ function (
                 loading: "loading"
             };
         },
-
+        // bind listener for button to action
         postCreate: function() {
+            this.inherited(arguments);
             this.own(
                 on(this._locateNode, a11yclick, lang.hitch(this, this.locate))
             );
