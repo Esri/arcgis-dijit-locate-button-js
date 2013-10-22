@@ -47,30 +47,30 @@ function (
             infoTemplate: null,
             scale: null,
             geolocationOptions: {
-                maximumAge: 3000,
-                timeout: 5000,
+                maximumAge: 0,
+                timeout: 15000,
                 enableHighAccuracy: true
             }
         },
         // lifecycle: 1
         constructor: function(options, srcRefNode) {
             // mix in settings and defaults
-            declare.safeMixin(this.options, options);
+            var defaults = lang.mixin({}, this.options, options);
             // widget node
             this.domNode = srcRefNode;
             this._i18n = i18n;
             if (!navigator.geolocation) {
-                this.options.visible = false;
+                defaults.visible = false;
             }
             // properties
-            this.set("map", this.options.map);
-            this.set("theme", this.options.theme);
-            this.set("visible", this.options.visible);
-            this.set("scale", this.options.scale);
-            this.set("highlightLocation", this.options.highlightLocation);
-            this.set("symbol", this.options.symbol);
-            this.set("infoTemplate", this.options.infoTemplate);
-            this.set("geolocationOptions", this.options.geolocationOptions);
+            this.set("map", defaults.map);
+            this.set("theme", defaults.theme);
+            this.set("visible", defaults.visible);
+            this.set("scale", defaults.scale);
+            this.set("highlightLocation", defaults.highlightLocation);
+            this.set("symbol", defaults.symbol);
+            this.set("infoTemplate", defaults.infoTemplate);
+            this.set("geolocationOptions", defaults.geolocationOptions);
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
