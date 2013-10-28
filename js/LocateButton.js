@@ -163,7 +163,9 @@ function (
                                 var locateEvt = {graphic: graphic, scale: scale, position: position};
                                 this.emit("locate", locateEvt);
                                 def.resolve(locateEvt);
-                            }));
+                            }), lang.hitch(this, function(error){
+                                def.reject(error.message);
+                            });
                         }
                         else{
                             // remove loading class
