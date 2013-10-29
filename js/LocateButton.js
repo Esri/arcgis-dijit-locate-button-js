@@ -165,7 +165,7 @@ function (
                                 def.resolve(locateEvt);
                             }), lang.hitch(this, function(error){
                                 def.reject(error.message);
-                            });
+                            }));
                         }
                         else{
                             // remove loading class
