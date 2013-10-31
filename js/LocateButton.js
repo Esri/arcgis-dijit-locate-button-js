@@ -14,7 +14,6 @@ define([
     "dojo/i18n!zesri/nls/jsapi",
     "dojo/dom-class",
     "dojo/dom-style",
-    "esri/geometry/webMercatorUtils",
     "esri/geometry/Point",
     "esri/SpatialReference",
     "esri/graphic",
@@ -31,7 +30,7 @@ function (
     Deferred,
     dijitTemplate, i18n,
     domClass, domStyle,
-    webMercatorUtils, Point, SpatialReference,
+    Point, SpatialReference,
     Graphic, PictureMarkerSymbol,
     GraphicsLayer
 ) {
@@ -137,7 +136,7 @@ function (
                         // scale info
                         var scale = this.get("scale") || position.coords.accuracy || 50000;
                         // set point
-                        var pt = webMercatorUtils.geographicToWebMercator(new Point(longitude, latitude, new SpatialReference(4326)));
+                        var pt = new Point([longitude, latitude], new SpatialReference({ wkid:4326 }));
                         if(pt){
                             // set scale
                             this.map.setScale(scale);
