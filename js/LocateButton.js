@@ -45,6 +45,7 @@ function (
             symbol: new PictureMarkerSymbol(require.toUrl("esri/dijit") + '/images/blue-dot.png', 21, 21),
             infoTemplate: null,
             scale: null,
+            graphicsLayer: null,
             geolocationOptions: {
                 maximumAge: 0,
                 timeout: 15000,
@@ -58,8 +59,10 @@ function (
             // widget node
             this.domNode = srcRefNode;
             this._i18n = i18n;
+            // hide if unsupported
             if (!navigator.geolocation) {
                 defaults.visible = false;
+                console.log('LocateButton::navigator.geolocation unsupported.');
             }
             // properties
             this.set("map", defaults.map);
@@ -70,6 +73,7 @@ function (
             this.set("symbol", defaults.symbol);
             this.set("infoTemplate", defaults.infoTemplate);
             this.set("geolocationOptions", defaults.geolocationOptions);
+            this.set("graphicsLayer", defaults.graphicsLayer);
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
@@ -94,8 +98,8 @@ function (
                 this.destroy();
                 console.log('LocateButton::map required');
             }
-            this._graphics = new GraphicsLayer();
-            this.map.addLayer(this._graphics);
+            this.set("graphicsLayer", new GraphicsLayer());
+            this.map.addLayer(this.get("graphicsLayer"));
             // when map is loaded
             if (this.map.loaded) {
                 this._init();
@@ -118,7 +122,7 @@ function (
         /* Public Functions */
         /* ---------------- */
         clear: function(){
-            this._graphics.clear();
+            this.get("graphicsLayer").clear();
         },
         locate: function() {
             var def = new Deferred();
@@ -151,15 +155,15 @@ function (
                                     position: position
                                 };
                                 // create graphic
-                                var graphic = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
+                                var g = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
                                 // highlight enabled
                                 if(this.get("highlightLocation")){
-                                    this._graphics.add(graphic);
+                                    this.get("graphicsLayer").add(g);
                                 }
                                 // hide loading class
                                 this._hideLoading();
                                 // set event
-                                var locateEvt = {graphic: graphic, scale: scale, position: position};
+                                var locateEvt = {graphic: g, scale: scale, position: position};
                                 this.emit("locate", locateEvt);
                                 def.resolve(locateEvt);
                             }), lang.hitch(this, function(error){
