@@ -129,7 +129,7 @@ function (
                 // get location
                 navigator.geolocation.getCurrentPosition(lang.hitch(this, function(position) {
                     // position returned
-                    if (position) {
+                    if (position && position.coords) {
                         // point info
                         var latitude = position.coords.latitude;
                         var longitude = position.coords.longitude;
