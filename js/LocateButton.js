@@ -46,6 +46,7 @@ function (
             infoTemplate: null,
             scale: null,
             graphicsLayer: null,
+            tracking: true,
             geolocationOptions: {
                 maximumAge: 0,
                 timeout: 15000,
@@ -74,6 +75,7 @@ function (
             this.set("infoTemplate", defaults.infoTemplate);
             this.set("geolocationOptions", defaults.geolocationOptions);
             this.set("graphicsLayer", defaults.graphicsLayer);
+            this.set("tracking", defaults.tracking);
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
@@ -130,66 +132,35 @@ function (
             this._showLoading();
             // geolocation support
             if (navigator.geolocation) {
-                // get location
-                navigator.geolocation.getCurrentPosition(lang.hitch(this, function(position) {
-                    // position returned
-                    if (position && position.coords) {
-                        // point info
-                        var latitude = position.coords.latitude;
-                        var longitude = position.coords.longitude;
-                        // scale info
-                        var scale = this.get("scale") || position.coords.accuracy || 50000;
-                        // set point
-                        var pt = new Point([longitude, latitude], new SpatialReference({ wkid:4326 }));
-                        if(pt){
-                            // set scale
-                            this.map.setScale(scale);
-                            // center on point
-                            this.map.centerAt(pt).then(lang.hitch(this, function(){
-                                // highlight enabled
-                                if(this.get("highlightLocation")){
-                                    this.clear();
-                                }
-                                // graphic attributes
-                                var attributes = {
-                                    position: position
-                                };
-                                // create graphic
-                                var g = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
-                                // highlight enabled
-                                if(this.get("highlightLocation")){
-                                    this.get("graphicsLayer").add(g);
-                                }
-                                // hide loading class
-                                this._hideLoading();
-                                // set event
-                                var locateEvt = {graphic: g, scale: scale, position: position};
-                                this.emit("locate", locateEvt);
-                                def.resolve(locateEvt);
-                            }), lang.hitch(this, function(error){
-                                def.reject(error.message);
-                            }));
-                        }
-                        else{
-                            // remove loading class
-                            this._hideLoading();
-                            def.reject('LocateButton::Invalid point');
-                            console.log('LocateButton::Invalid point');
-                        }
-                    }
-                    else{
+                // watch position
+                if(this.get("tracking")){
+                    if(this.get("watchPosition")){
+                        // remove watch event
+                        navigator.geolocation.clearWatch(this.get("watchPosition"));
+                        // set watch event
+                        this.set("watchPosition", null);
                         // remove loading class
                         this._hideLoading();
-                        console.log('LocateButton::Invalid position');
-                        def.reject('LocateButton::Invalid position');
+                        def.resolve();
                     }
-                }), lang.hitch(this, function(err) {
-                    // remove loading class
-                    this._hideLoading();
-                    var errorMessage = 'LocateButton::' + err.code + ":" + err.message;
-                    console.log(errorMessage);
-                    def.reject(errorMessage);
-                }), this.get('geolocationOptions'));
+                    else{
+                        var watchEvent = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
+                            this._position(position, def);
+                        }), lang.hitch(this, function(error) {
+                            this._geolocateError(error, def);
+                        }), this.get('geolocationOptions'));
+                        // set watch event
+                        this.set("watchPosition", watchEvent);   
+                    }
+                }
+                else{
+                    // get location
+                    navigator.geolocation.getCurrentPosition(lang.hitch(this, function(position) {
+                        this._position(position, def);
+                    }), lang.hitch(this, function(error) {
+                        this._geolocateError(error, def);
+                    }), this.get('geolocationOptions'));   
+                }
             }
             else{
                 this._hideLoading();
@@ -207,6 +178,66 @@ function (
         /* ---------------- */
         /* Private Functions */
         /* ---------------- */
+        _position: function(position, def){
+            // position returned
+            if (position && position.coords) {
+                // point info
+                var latitude = position.coords.latitude;
+                var longitude = position.coords.longitude;
+                // scale info
+                var scale = this.get("scale") || position.coords.accuracy || 50000;
+                // set point
+                var pt = new Point([longitude, latitude], new SpatialReference({ wkid:4326 }));
+                if(pt){
+                    // set scale
+                    this.map.setScale(scale);
+                    // center on point
+                    this.map.centerAt(pt).then(lang.hitch(this, function(){
+                        // highlight enabled
+                        if(this.get("highlightLocation")){
+                            this.clear();
+                        }
+                        // graphic attributes
+                        var attributes = {
+                            position: position
+                        };
+                        // create graphic
+                        var g = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
+                        // highlight enabled
+                        if(this.get("highlightLocation")){
+                            this.get("graphicsLayer").add(g);
+                        }
+                        // hide loading class
+                        this._hideLoading();
+                        // set event
+                        var locateEvt = {graphic: g, scale: scale, position: position};
+                        this.emit("locate", locateEvt);
+                        def.resolve(locateEvt);
+                    }), lang.hitch(this, function(error){
+                        def.reject(error.message);
+                    }));
+                }
+                else{
+                    // remove loading class
+                    this._hideLoading();
+                    def.reject('LocateButton::Invalid point');
+                    console.log('LocateButton::Invalid point');
+                }
+            }
+            else{
+                // remove loading class
+                this._hideLoading();
+                console.log('LocateButton::Invalid position');
+                def.reject('LocateButton::Invalid position');
+            }
+        },
+        _geolocateError: function(error, def){
+            // remove loading class
+            this._hideLoading();
+            var errorMessage = 'LocateButton::' + error.code + ":" + error.message;
+            console.log(errorMessage);
+            def.reject(errorMessage);
+        },
         _showLoading: function(){
             domClass.add(this._locateNode, this._css.loading);
         },
