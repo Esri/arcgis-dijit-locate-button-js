@@ -46,7 +46,10 @@ function (
             infoTemplate: null,
             scale: null,
             graphicsLayer: null,
-            tracking: true,
+            useWatch: false,
+            watching: false,
+            setScale: true,
+            centerAt: true,
             geolocationOptions: {
                 maximumAge: 0,
                 timeout: 15000,
@@ -75,10 +78,14 @@ function (
             this.set("infoTemplate", defaults.infoTemplate);
             this.set("geolocationOptions", defaults.geolocationOptions);
             this.set("graphicsLayer", defaults.graphicsLayer);
-            this.set("tracking", defaults.tracking);
+            this.set("useWatch", defaults.useWatch);
+            this.set("watching", defaults.watching);
+            this.set("setScale", defaults.setScale);
+            this.set("centerAt", defaults.centerAt);
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
+            this.watch("watching", this._locate);
             // classes
             this._css = {
                 container: "locateContainer",
@@ -124,33 +131,56 @@ function (
         /* Public Functions */
         /* ---------------- */
         clear: function(){
+            this._highlightGraphic = null;
             this.get("graphicsLayer").clear();
         },
         locate: function() {
+            if(this.get("useWatch")){
+                this.set("watching", !this.get("watching"));
+            }
+            this._locate();
+        },
+        show: function(){
+            this.set("visible", true);  
+        },
+        hide: function(){
+            this.set("visible", false);
+        },
+        /* ---------------- */
+        /* Private Functions */
+        /* ---------------- */
+        _removeWatchPosition: function(){
+            if(this.get("watchPosition")){
+                // remove watch event
+                navigator.geolocation.clearWatch(this.get("watchPosition"));
+                // set watch event
+                this.set("watchPosition", null);
+            }
+        },
+        _locate: function(){
             var def = new Deferred();
             // add loading class
             this._showLoading();
             // geolocation support
             if (navigator.geolocation) {
                 // watch position
-                if(this.get("tracking")){
-                    if(this.get("watchPosition")){
-                        // remove watch event
-                        navigator.geolocation.clearWatch(this.get("watchPosition"));
-                        // set watch event
-                        this.set("watchPosition", null);
-                        // remove loading class
-                        this._hideLoading();
-                        def.resolve();
-                    }
-                    else{
+                if(this.get("useWatch")){
+                    // watch position exists
+                    if(this.get("watching")){
+                        this._removeWatchPosition();
                         var watchEvent = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
                             this._position(position, def);
                         }), lang.hitch(this, function(error) {
                             this._geolocateError(error, def);
                         }), this.get('geolocationOptions'));
                         // set watch event
-                        this.set("watchPosition", watchEvent);   
+                        this.set("watchPosition", watchEvent);
+                    }
+                    else{
+                        this._removeWatchPosition();
+                        // remove loading class
+                        this._hideLoading();
+                        def.resolve();
                     }
                 }
                 else{
@@ -169,15 +199,6 @@ function (
             }
             return def.promise;
         },
-        show: function(){
-            this.set("visible", true);  
-        },
-        hide: function(){
-            this.set("visible", false);
-        },
-        /* ---------------- */
-        /* Private Functions */
-        /* ---------------- */
         _position: function(position, def){
             // position returned
             if (position && position.coords) {
@@ -189,33 +210,23 @@ function (
                 // set point
                 var pt = new Point([longitude, latitude], new SpatialReference({ wkid:4326 }));
                 if(pt){
-                    // set scale
-                    this.map.setScale(scale);
-                    // center on point
-                    this.map.centerAt(pt).then(lang.hitch(this, function(){
-                        // highlight enabled
-                        if(this.get("highlightLocation")){
-                            this.clear();
-                        }
-                        // graphic attributes
-                        var attributes = {
-                            position: position
-                        };
-                        // create graphic
-                        var g = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
-                        // highlight enabled
-                        if(this.get("highlightLocation")){
-                            this.get("graphicsLayer").add(g);
-                        }
-                        // hide loading class
-                        this._hideLoading();
-                        // set event
-                        var locateEvt = {graphic: g, scale: scale, position: position};
-                        this.emit("locate", locateEvt);
-                        def.resolve(locateEvt);
-                    }), lang.hitch(this, function(error){
-                        def.reject(error.message);
-                    }));
+                    // highlight enabled
+                    // if setScale is enabled
+                    if(this.get("setScale")){
+                        // set scale
+                        this.map.setScale(scale);
+                    }
+                    if(this.get("centerAt")){
+                        // center on point
+                        this.map.centerAt(pt).then(lang.hitch(this, function(){
+                            this._finishEvent(pt, scale, position, def);
+                        }), lang.hitch(this, function(error){
+                            def.reject(error.message);
+                        }));
+                    }
+                    else{
+                        this._finishEvent(pt, scale, position, def);
+                    }
                 }
                 else{
                     // remove loading class
@@ -231,6 +242,33 @@ function (
                 def.reject('LocateButton::Invalid position');
             }
         },
+        _finishEvent: function(pt, scale, position, def){
+            // graphic attributes
+            var attributes = {
+                position: position
+            };
+            if(this._highlightGraphic){
+                this._highlightGraphic.setGeometry(pt);
+                this._highlightGraphic.setAttributes(attributes);
+                this._highlightGraphic.setInfoTemplate(this.get("infoTemplate"));
+                this._highlightGraphic.setSymbol(this.get("symbol"));                
+            }
+            else{
+                // create graphic
+                var g = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
+                // highlight enabled
+                if(this.get("highlightLocation")){
+                    this.get("graphicsLayer").add(g);
+                }
+                this._highlightGraphic = g;
+            }
+            // hide loading class
+            this._hideLoading();
+            // set event
+            var locateEvt = {graphic: g, scale: scale, position: position};
+            this.emit("locate", locateEvt);
+            def.resolve(locateEvt);
+        },
         _geolocateError: function(error, def){
             // remove loading class
             this._hideLoading();
@@ -239,13 +277,20 @@ function (
             def.reject(errorMessage);
         },
         _showLoading: function(){
-            domClass.add(this._locateNode, this._css.loading);
+            if(!this.get("useWatch")){
+                domClass.add(this._locateNode, this._css.loading);
+            }
         },
         _hideLoading: function(){
-            domClass.remove(this._locateNode, this._css.loading);
+            if(!this.get("useWatch")){
+                domClass.remove(this._locateNode, this._css.loading);
+            }
         },
         _init: function() {
             this._visible();
+            if(this.get("useWatch") && this.get("watching")){
+                this._locate();
+            }
             this.set("loaded", true);
             this.emit("load", {});
         },
