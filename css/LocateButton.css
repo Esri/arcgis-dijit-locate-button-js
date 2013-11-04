@@ -35,8 +35,3 @@
 .LocateButton .loading {
 	background-image:url(../images/locate-spinner.gif);
 }
-
-.LocateButton .watching {
-	background-color:#333;
-	background-color:rgba(102,102,102,0.90);
-}

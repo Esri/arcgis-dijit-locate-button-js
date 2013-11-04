@@ -46,8 +46,8 @@ function (
             infoTemplate: null,
             scale: null,
             graphicsLayer: null,
-            useWatch: true,
-            watching: false,
+            useTracking: true,
+            tracking: false,
             setScale: true,
             centerAt: true,
             geolocationOptions: {
@@ -78,20 +78,20 @@ function (
             this.set("infoTemplate", defaults.infoTemplate);
             this.set("geolocationOptions", defaults.geolocationOptions);
             this.set("graphicsLayer", defaults.graphicsLayer);
-            this.set("useWatch", defaults.useWatch);
-            this.set("watching", defaults.watching);
+            this.set("useTracking", defaults.useTracking);
+            this.set("tracking", defaults.tracking);
             this.set("setScale", defaults.setScale);
             this.set("centerAt", defaults.centerAt);
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
-            this.watch("watching", this._locate);
+            this.watch("tracking", this._locate);
             // classes
             this._css = {
                 container: "locateContainer",
                 locate: "zoomLocateButton",
                 loading: "loading",
-                watching: "watching"
+                tracking: "tracking"
             };
         },
         // bind listener for button to action
@@ -136,8 +136,9 @@ function (
             this.get("graphicsLayer").clear();
         },
         locate: function() {
-            if(this.get("useWatch")){
-                this.set("watching", !this.get("watching"));
+            // toggle tracking
+            if(this.get("useTracking")){
+                this.set("tracking", !this.get("tracking"));
             }
             this._locate();
         },
@@ -165,10 +166,10 @@ function (
             // geolocation support
             if (navigator.geolocation) {
                 // watch position
-                if(this.get("useWatch")){
+                if(this.get("useTracking")){
                     // watch position exists
-                    if(this.get("watching")){
-                        domClass.add(this._locateNode, this._css.watching);
+                    if(this.get("tracking")){
+                        domClass.add(this._locateNode, this._css.tracking);
                         this._removeWatchPosition();
                         var watchEvent = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
                             this._position(position, def);
@@ -179,7 +180,7 @@ function (
                         this.set("watchPosition", watchEvent);
                     }
                     else{
-                        domClass.remove(this._locateNode, this._css.watching);
+                        domClass.remove(this._locateNode, this._css.tracking);
                         this._removeWatchPosition();
                         // remove loading class
                         this._hideLoading();
@@ -280,18 +281,18 @@ function (
             def.reject(errorMessage);
         },
         _showLoading: function(){
-            if(!this.get("useWatch")){
+            if(!this.get("useTracking")){
                 domClass.add(this._locateNode, this._css.loading);
             }
         },
         _hideLoading: function(){
-            if(!this.get("useWatch")){
+            if(!this.get("useTracking")){
                 domClass.remove(this._locateNode, this._css.loading);
             }
         },
         _init: function() {
             this._visible();
-            if(this.get("useWatch") && this.get("watching")){
+            if(this.get("useTracking") && this.get("tracking")){
                 this._locate();
             }
             this.set("loaded", true);
