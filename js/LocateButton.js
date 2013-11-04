@@ -46,7 +46,7 @@ function (
             infoTemplate: null,
             scale: null,
             graphicsLayer: null,
-            useWatch: false,
+            useWatch: true,
             watching: false,
             setScale: true,
             centerAt: true,
@@ -90,7 +90,8 @@ function (
             this._css = {
                 container: "locateContainer",
                 locate: "zoomLocateButton",
-                loading: "loading"
+                loading: "loading",
+                watching: "watching"
             };
         },
         // bind listener for button to action
@@ -167,6 +168,7 @@ function (
                 if(this.get("useWatch")){
                     // watch position exists
                     if(this.get("watching")){
+                        domClass.add(this._locateNode, this._css.watching);
                         this._removeWatchPosition();
                         var watchEvent = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
                             this._position(position, def);
@@ -177,6 +179,7 @@ function (
                         this.set("watchPosition", watchEvent);
                     }
                     else{
+                        domClass.remove(this._locateNode, this._css.watching);
                         this._removeWatchPosition();
                         // remove loading class
                         this._hideLoading();

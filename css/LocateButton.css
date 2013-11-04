@@ -6,8 +6,8 @@
 	padding:2px;
 	width:30px;
 	height:30px;
-	background-color: #666;
-	background-color: rgba(102,102,102,0.80);
+	background-color:#666;
+	background-color:rgba(102,102,102,0.80);
 	-webkit-user-select:none;
 	-moz-user-select:none;
 	-ms-user-select:none;
@@ -22,20 +22,21 @@
 	background-repeat:no-repeat;
 }
 
-.LocateButton .loading {
-	background-image:url(../images/spinner.gif);
+.LocateButton .zoomLocateButton:hover {
+	background-color:#333;
+	background-color:rgba(102,102,102,0.90);
 }
 
-.LocateButton .zoomHomeButton:hover {
-    background-color: #333;
-    background-color: rgba(102,102,102,0.90);
-}
-
-.LocateButton .zoomHomeButton:active {
-    background-color: #ccc;
-    background-color: rgba(102,102,102,0.60);
+.LocateButton .zoomLocateButton:active {
+	background-color:#ccc;
+	background-color:rgba(102,102,102,0.60);
 }
 
 .LocateButton .loading {
 	background-image:url(../images/locate-spinner.gif);
+}
+
+.LocateButton .watching {
+	background-color:#333;
+	background-color:rgba(102,102,102,0.90);
 }
