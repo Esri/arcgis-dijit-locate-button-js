@@ -18,20 +18,21 @@ Basic use
     
 All options
     
-     var myWidget = new locateButton({
-        theme: "locateButton", // optionally specify a custom theme to style yourself
-        map: myMap, // the map to use for the button
-        visible: true, // show the button by default
-        locateLOD: 16, // when clicked, zoom to this level of detail
-        showPointer: true, // show a point symbol when zoomed to the users location
-        pointerGraphic: new Graphic(null, new PictureMarkerSymbol('images/bluedot_retina.png', 21, 21)), // custom symbol to show
-        locateSettings: { // html5 geolocation settings
-            maximumAge: 3000,
-            timeout: 1000,
-            enableHighAccuracy: true
-        }
+    myWidget = new locateButton({
+        theme: "locateButton", // (optional). class name for the widget container. default: "locateButton"
+        map: myMap, // (required) map object
+        visible: true, // (optional) show the widget. default: true
+        highlightLocation: true, // (optional) show a graphic on the location when geolocated. default: true
+        scale: null, // (optional) scale in meters to geolocate to. Defaults to accuracy from geolocation.
+        symbol: new PictureMarkerSymbol(require.toUrl("esri/dijit") + '/images/blue-dot.png', 21, 21),
+        infoTemplate: null, // popup info template
+        useTracking: true, // use watchPosition instead of getCurrentLocation
+        tracking: false, // if tracking is enabled by default
+        setScale: true, // set scale on locate
+        centerAt: true, // center at point on locate
+        geolocationOptions: // (optional). default: { maximumAge: 0, timeout: 15000, enableHighAccuracy: true}
     }, "locateButton");
-    myWidget.startup();
+    myWidget.startup();     
 
 
  [New to Github? Get started here.](https://github.com/)
