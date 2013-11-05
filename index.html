@@ -57,7 +57,7 @@
     <script src="http://js.arcgis.com/3.7/" type="text/javascript"></script>
     <script type="text/javascript">
 
-        require(["esri/map", "modules/LocateButton"], function(Map, LocateButton){
+        require(["esri/map", "modules/LocateButton", "dojo/on"], function(Map, LocateButton){
 
             var myMap = new Map("map", {
                 center: [-56.049, 38.485],
@@ -72,6 +72,11 @@
                 map: myMap
             }, "LocateButton");
             myWidget.startup();
+            
+            myWidget.on('locate', function(evt){
+                console.log(evt);
+                console.log(evt.graphic.geometry.x);
+            });
             
 
             

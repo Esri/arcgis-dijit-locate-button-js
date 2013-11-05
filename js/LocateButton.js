@@ -270,11 +270,11 @@ function (
             };
             var g;
             if(this.get("highlightGraphic")){
-                this.get("highlightGraphic").setGeometry(pt);
-                this.get("highlightGraphic").setAttributes(attributes);
-                this.get("highlightGraphic").setInfoTemplate(this.get("infoTemplate"));
-                this.get("highlightGraphic").setSymbol(this.get("symbol"));
-                g = this.get("highlightGraphic");              
+                g = this.get("highlightGraphic");
+                g.setGeometry(pt);
+                g.setAttributes(attributes);
+                g.setInfoTemplate(this.get("infoTemplate"));
+                g.setSymbol(this.get("symbol"));             
             }
             else{
                 // create graphic
@@ -283,8 +283,9 @@ function (
                 if(this.get("highlightLocation")){
                     this.get("graphicsLayer").add(g);
                 }
-                this.set("highlightGraphic", g);
             }
+            // set highlight graphic
+            this.set("highlightGraphic", g);
             // hide loading class
             this._hideLoading();
             // set event
