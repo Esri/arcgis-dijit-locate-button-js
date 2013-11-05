@@ -20,16 +20,15 @@ All options
     
     myWidget = new locateButton({
         theme: "locateButton", // (optional). class name for the widget container. default: "locateButton"
-        map: myMap, // (required) map object
-        visible: true, // (optional) show the widget. default: true
-        highlightLocation: true, // (optional) show a graphic on the location when geolocated. default: true
+        map: myMap, // (required) map object. default: null.
+        visible: true, // (optional) show the widget. default: true.
+        highlightLocation: true, // (optional) show a graphic on the location when geolocated. default: true.
         scale: null, // (optional) scale in meters to geolocate to. Defaults to accuracy from geolocation.
-        symbol: new PictureMarkerSymbol(require.toUrl("esri/dijit") + '/images/blue-dot.png', 21, 21),
-        infoTemplate: null, // popup info template
-        useTracking: true, // use watchPosition instead of getCurrentLocation
-        tracking: false, // if tracking is enabled by default
-        setScale: true, // set scale on locate
-        centerAt: true, // center at point on locate
+        symbol: new PictureMarkerSymbol(require.toUrl("esri/dijit") + '/images/blue-dot.png', 21, 21), // (optional)
+        infoTemplate: null, // (optional) popup info template. default: null
+        useTracking: true, // (optional) use watchPosition instead of getCurrentLocation. default: false
+        setScale: true, // (optional) set scale on locate. default: true.
+        centerAt: true, // (optional) center at point on locate. default: true
         geolocationOptions: // (optional). default: { maximumAge: 0, timeout: 15000, enableHighAccuracy: true}
     }, "locateButton");
     myWidget.startup();     

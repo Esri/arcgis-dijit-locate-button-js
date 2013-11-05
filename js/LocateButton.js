@@ -46,7 +46,6 @@ function (
             infoTemplate: null,
             scale: null,
             useTracking: true,
-            tracking: false,
             setScale: true,
             centerAt: true,
             geolocationOptions: {
@@ -77,7 +76,6 @@ function (
             this.set("infoTemplate", defaults.infoTemplate);
             this.set("geolocationOptions", defaults.geolocationOptions);
             this.set("useTracking", defaults.useTracking); // new
-            this.set("tracking", defaults.tracking); // new
             this.set("setScale", defaults.setScale); // new
             this.set("centerAt", defaults.centerAt); // new
             // listeners
