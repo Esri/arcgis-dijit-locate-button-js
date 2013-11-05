@@ -270,15 +270,17 @@ function (
             var attributes = {
                 position: position
             };
+            var g;
             if(this.get("highlightGraphic")){
                 this.get("highlightGraphic").setGeometry(pt);
                 this.get("highlightGraphic").setAttributes(attributes);
                 this.get("highlightGraphic").setInfoTemplate(this.get("infoTemplate"));
-                this.get("highlightGraphic").setSymbol(this.get("symbol"));                
+                this.get("highlightGraphic").setSymbol(this.get("symbol"));
+                g = this.get("highlightGraphic");              
             }
             else{
                 // create graphic
-                var g = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
+                g = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
                 // highlight enabled
                 if(this.get("highlightLocation")){
                     this.get("graphicsLayer").add(g);
