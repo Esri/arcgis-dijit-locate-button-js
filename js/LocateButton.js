@@ -45,7 +45,6 @@ function (
             symbol: new PictureMarkerSymbol(require.toUrl("esri/dijit") + '/images/blue-dot.png', 21, 21),
             infoTemplate: null,
             scale: null,
-            graphicsLayer: null,
             useTracking: true,
             tracking: false,
             setScale: true,
@@ -77,21 +76,25 @@ function (
             this.set("symbol", defaults.symbol);
             this.set("infoTemplate", defaults.infoTemplate);
             this.set("geolocationOptions", defaults.geolocationOptions);
-            this.set("graphicsLayer", defaults.graphicsLayer);
-            this.set("useTracking", defaults.useTracking);
-            this.set("tracking", defaults.tracking);
-            this.set("setScale", defaults.setScale);
-            this.set("centerAt", defaults.centerAt);
+            this.set("useTracking", defaults.useTracking); // new
+            this.set("tracking", defaults.tracking); // new
+            this.set("setScale", defaults.setScale); // new
+            this.set("centerAt", defaults.centerAt); // new
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
             this.watch("tracking", this._locate);
+            this.watch("useTracking", lang.hitch(this, function(){
+               if(this.get("tracking") && !this.get("useTracking")){
+                   this._stopTracking();
+               }
+            }));
             // classes
             this._css = {
                 container: "locateContainer",
                 locate: "zoomLocateButton",
                 loading: "loading",
-                tracking: "tracking"
+                tracking: "tracking" // new
             };
         },
         // bind listener for button to action
@@ -104,23 +107,31 @@ function (
         // start widget. called by user
         startup: function() {
             // map not defined
-            if (!this.map) {
+            if (!this.get("map")) {
                 this.destroy();
                 console.log('LocateButton::map required');
             }
+            // graphics layer
             this.set("graphicsLayer", new GraphicsLayer());
-            this.map.addLayer(this.get("graphicsLayer"));
+            this.get("map").addLayer(this.get("graphicsLayer"));
+            // graphics remove highlight on clear
+            this._graphicsEvent = on(this.get("graphicsLayer"), 'graphics-clear', lang.hitch(this, function(){
+                this.set("highlightGraphic", null);
+            }));
             // when map is loaded
-            if (this.map.loaded) {
+            if (this.get("map").loaded) {
                 this._init();
             } else {
-                on(this.map, "load", lang.hitch(this, function() {
+                on(this.get("map"), "load", lang.hitch(this, function() {
                     this._init();
                 }));
             }
         },
         // connections/subscriptions will be cleaned up during the destroy() lifecycle phase
         destroy: function() {
+            if(this._graphicsEvent){
+                this._graphicsEvent.remove();
+            }
             this.inherited(arguments);
         },
         /* ---------------- */
@@ -132,7 +143,6 @@ function (
         /* Public Functions */
         /* ---------------- */
         clear: function(){
-            this._highlightGraphic = null;
             this.get("graphicsLayer").clear();
         },
         locate: function() {
@@ -159,6 +169,32 @@ function (
                 this.set("watchPosition", null);
             }
         },
+        _stopTracking: function(def){
+            domClass.remove(this._locateNode, this._css.tracking);
+            this._removeWatchPosition();
+            // remove loading class
+            this._hideLoading();
+            def.resolve();
+        },
+        _startTracking: function(def){
+            domClass.add(this._locateNode, this._css.tracking);
+            this._removeWatchPosition();
+            var watchEvent = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
+                this._position(position, def);
+            }), lang.hitch(this, function(error) {
+                this._geolocateError(error, def);
+            }), this.get('geolocationOptions'));
+            // set watch event
+            this.set("watchPosition", watchEvent);
+        },
+        _getCurrentPosition: function(){
+            // get location
+            navigator.geolocation.getCurrentPosition(lang.hitch(this, function(position) {
+                this._position(position, def);
+            }), lang.hitch(this, function(error) {
+                this._geolocateError(error, def);
+            }), this.get('geolocationOptions'));
+        },
         _locate: function(){
             var def = new Deferred();
             // add loading class
@@ -169,31 +205,14 @@ function (
                 if(this.get("useTracking")){
                     // watch position exists
                     if(this.get("tracking")){
-                        domClass.add(this._locateNode, this._css.tracking);
-                        this._removeWatchPosition();
-                        var watchEvent = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
-                            this._position(position, def);
-                        }), lang.hitch(this, function(error) {
-                            this._geolocateError(error, def);
-                        }), this.get('geolocationOptions'));
-                        // set watch event
-                        this.set("watchPosition", watchEvent);
+                        this._startTracking(def);
                     }
                     else{
-                        domClass.remove(this._locateNode, this._css.tracking);
-                        this._removeWatchPosition();
-                        // remove loading class
-                        this._hideLoading();
-                        def.resolve();
+                        this._stopTracking(def);
                     }
                 }
                 else{
-                    // get location
-                    navigator.geolocation.getCurrentPosition(lang.hitch(this, function(position) {
-                        this._position(position, def);
-                    }), lang.hitch(this, function(error) {
-                        this._geolocateError(error, def);
-                    }), this.get('geolocationOptions'));   
+                    this._getCurrentPosition(def);
                 }
             }
             else{
@@ -218,11 +237,11 @@ function (
                     // if setScale is enabled
                     if(this.get("setScale")){
                         // set scale
-                        this.map.setScale(scale);
+                        this.get("map").setScale(scale);
                     }
                     if(this.get("centerAt")){
                         // center on point
-                        this.map.centerAt(pt).then(lang.hitch(this, function(){
+                        this.get("map").centerAt(pt).then(lang.hitch(this, function(){
                             this._finishEvent(pt, scale, position, def);
                         }), lang.hitch(this, function(error){
                             def.reject(error.message);
@@ -251,11 +270,11 @@ function (
             var attributes = {
                 position: position
             };
-            if(this._highlightGraphic){
-                this._highlightGraphic.setGeometry(pt);
-                this._highlightGraphic.setAttributes(attributes);
-                this._highlightGraphic.setInfoTemplate(this.get("infoTemplate"));
-                this._highlightGraphic.setSymbol(this.get("symbol"));                
+            if(this.get("highlightGraphic")){
+                this.get("highlightGraphic").setGeometry(pt);
+                this.get("highlightGraphic").setAttributes(attributes);
+                this.get("highlightGraphic").setInfoTemplate(this.get("infoTemplate"));
+                this.get("highlightGraphic").setSymbol(this.get("symbol"));                
             }
             else{
                 // create graphic
@@ -264,7 +283,7 @@ function (
                 if(this.get("highlightLocation")){
                     this.get("graphicsLayer").add(g);
                 }
-                this._highlightGraphic = g;
+                this.set("highlightGraphic", g);
             }
             // hide loading class
             this._hideLoading();

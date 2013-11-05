@@ -35,3 +35,7 @@
 .LocateButton .loading {
 	background-image:url(../images/locate-spinner.gif);
 }
+
+.LocateButton .tracking {
+	background-image:url(../images/stop.png) !important;
+}
