@@ -159,8 +159,7 @@ function (
             if (this.get("useTracking")) {
                 this.set("tracking", !this.get("tracking"));
             }
-            this._locate();
-            this._setTitle();
+            return this._locate();
         },
         show: function() {
             this.set("visible", true);
@@ -202,7 +201,7 @@ function (
             domClass.add(this._locateNode, this._css.tracking);
             this._removeWatchPosition();
             var watchEvent = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
-                this._position(position);
+                this._setPosition(position);
             }), lang.hitch(this, function(error) {
                 this._logError(error);
             }), this.get('geolocationOptions'));
@@ -213,7 +212,7 @@ function (
             var def = new Deferred();
             // get location
             navigator.geolocation.getCurrentPosition(lang.hitch(this, function(position) {
-                this._position(position).then(lang.hitch(this, function(response) {
+                this._setPosition(position).then(lang.hitch(this, function(response) {
                     def.resolve(response);
                 }), lang.hitch(this, function(error) {
                     this._logError(error);
@@ -259,9 +258,10 @@ function (
                 console.log('LocateButton::geolocation unsupported');
                 def.reject('LocateButton::geolocation unsupported');
             }
+            this._setTitle();
             return def.promise;
         },
-        _position: function(position) {
+        _setPosition: function(position) {
             var def = new Deferred();
             // position returned
             if (position && position.coords) {
