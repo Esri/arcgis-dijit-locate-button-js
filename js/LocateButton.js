@@ -76,9 +76,9 @@ function (
             this.set("symbol", defaults.symbol);
             this.set("infoTemplate", defaults.infoTemplate);
             this.set("geolocationOptions", defaults.geolocationOptions);
-            this.set("useTracking", defaults.useTracking); // new
-            this.set("setScale", defaults.setScale); // new
-            this.set("centerAt", defaults.centerAt); // new
+            this.set("useTracking", defaults.useTracking);
+            this.set("setScale", defaults.setScale);
+            this.set("centerAt", defaults.centerAt);
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
@@ -95,14 +95,13 @@ function (
                 container: "locateContainer",
                 locate: "zoomLocateButton",
                 loading: "loading",
-                tracking: "tracking" // new
+                tracking: "tracking"
             };
         },
         // bind listener for button to action
         postCreate: function() {
             this.inherited(arguments);
-            this.own(
-            on(this._locateNode, a11yclick, lang.hitch(this, this.locate)));
+            this.own(on(this._locateNode, a11yclick, lang.hitch(this, this.locate)));
         },
         // start widget. called by user
         startup: function() {
@@ -135,8 +134,8 @@ function (
                 this._graphicsEvent.remove();
             }
             // remove graphics layer
-            if (this.graphicsLayer && this.map) {
-                this.map.removeLayer(this.graphicsLayer);
+            if (this.get("graphicsLayer") && this.get("map")) {
+                this.get("map").removeLayer(this.get("graphicsLayer"));
             }
             // remove watch if there
             this._removeWatchPosition();
@@ -184,11 +183,11 @@ function (
             }
         },
         _removeWatchPosition: function() {
-            if (this.get("watchPosition")) {
+            if (this.get("watchId")) {
                 // remove watch event
-                navigator.geolocation.clearWatch(this.get("watchPosition"));
+                navigator.geolocation.clearWatch(this.get("watchId"));
                 // set watch event
-                this.set("watchPosition", null);
+                this.set("watchId", null);
             }
         },
         _stopTracking: function() {
@@ -200,13 +199,13 @@ function (
         _startTracking: function() {
             domClass.add(this._locateNode, this._css.tracking);
             this._removeWatchPosition();
-            var watchEvent = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
+            var WatchId = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
                 this._setPosition(position);
             }), lang.hitch(this, function(error) {
                 this._logError(error);
             }), this.get('geolocationOptions'));
             // set watch event
-            this.set("watchPosition", watchEvent);
+            this.set("watchId", WatchId);
         },
         _getCurrentPosition: function() {
             var def = new Deferred();
