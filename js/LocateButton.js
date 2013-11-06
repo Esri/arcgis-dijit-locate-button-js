@@ -45,7 +45,7 @@ function (
             symbol: new PictureMarkerSymbol(require.toUrl("esri/dijit") + '/images/blue-dot.png', 21, 21),
             infoTemplate: null,
             scale: null,
-            useTracking: true,
+            useTracking: false,
             setScale: true,
             centerAt: true,
             geolocationOptions: {
