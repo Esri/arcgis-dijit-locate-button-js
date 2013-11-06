@@ -14,6 +14,7 @@ define([
     "dojo/i18n!zesri/nls/jsapi",
     "dojo/dom-class",
     "dojo/dom-style",
+    "dojo/dom-attr",
     "esri/geometry/Point",
     "esri/SpatialReference",
     "esri/graphic",
@@ -29,7 +30,7 @@ function (
     on,
     Deferred,
     dijitTemplate, i18n,
-    domClass, domStyle,
+    domClass, domStyle, domAttr,
     Point, SpatialReference,
     Graphic, PictureMarkerSymbol,
     GraphicsLayer
@@ -86,6 +87,8 @@ function (
                 if (this.get("tracking") && !this.get("useTracking")) {
                     this._stopTracking();
                 }
+                // update title of button
+                this._setTitle();
             }));
             // classes
             this._css = {
@@ -157,6 +160,7 @@ function (
                 this.set("tracking", !this.get("tracking"));
             }
             this._locate();
+            this._setTitle();
         },
         show: function() {
             this.set("visible", true);
@@ -167,6 +171,19 @@ function (
         /* ---------------- */
         /* Private Functions */
         /* ---------------- */
+        _setTitle: function(){
+            if(this.get("useTracking")){
+                if(this.get("tracking")){
+                    domAttr.set(this._locateNode, "title", this._i18n.widgets.locateButton.locate.stopTracking);
+                }
+                else{
+                    domAttr.set(this._locateNode, "title", this._i18n.widgets.locateButton.locate.tracking);
+                }
+            }  
+            else{
+                domAttr.set(this._locateNode, "title", this._i18n.widgets.locateButton.locate.title);
+            }
+        },
         _removeWatchPosition: function() {
             if (this.get("watchPosition")) {
                 // remove watch event
@@ -350,6 +367,7 @@ function (
         },
         _init: function() {
             this._visible();
+            this._setTitle();
             this.set("loaded", true);
             this.emit("load", {});
         },

@@ -147,7 +147,9 @@ define({
             locateButton: {
                 "locate": {
                     "button": "My Location",
-                    "title": "Find my location"
+                    "title": "Find my location",
+                    "tracking": "Track location",
+                    "stopTracking":"Stop tracking location"
                 }
             },
             overviewMap: {
