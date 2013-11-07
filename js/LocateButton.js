@@ -202,6 +202,9 @@ function (
             var WatchId = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
                 this._setPosition(position);
             }), lang.hitch(this, function(error) {
+                if(!error){
+                    error = new Error("LocateButton::Could not get tracking position.");
+                }
                 this._locateError(error);
             }), this.get('geolocationOptions'));
             // set watch event
@@ -214,10 +217,16 @@ function (
                 this._setPosition(position).then(lang.hitch(this, function(response) {
                     def.resolve(response);
                 }), lang.hitch(this, function(error) {
+                    if(!error){
+                        error = new Error("LocateButton::Error setting map position.");
+                    }
                     this._locateError(error);
                     def.reject(error);
                 }));
             }), lang.hitch(this, function(error) {
+                if(!error){
+                    error = new Error("LocateButton::Could not get current position.");
+                }
                 this._locateError(error);
                 def.reject(error);
             }), this.get('geolocationOptions'));
@@ -248,12 +257,15 @@ function (
                     this._getCurrentPosition().then(lang.hitch(this, function(response) {
                         def.resolve(response);
                     }), lang.hitch(this, function(error) {
+                        if(!error){
+                            error = new Error("LocateButton::Could not get current position.");
+                        }
                         this._locateError(error);
                         def.reject(error);
                     }));
                 }
             } else {
-                var error = 'LocateButton::geolocation unsupported';
+                var error = new Error('LocateButton::geolocation unsupported');
                 this._locateError(error);
                 def.reject(error);
             }
@@ -287,6 +299,9 @@ function (
                             var evt = this._locateEvent(pt, scale, position);
                             def.resolve(evt);
                         }), lang.hitch(this, function(error) {
+                            if(!error){
+                                error = new Error("LocateButton::Could not center map.");
+                            }
                             this._locateError(error);
                             def.reject(error);
                         }));
@@ -295,12 +310,12 @@ function (
                         def.resolve(evt);
                     }
                 } else {
-                    error = 'LocateButton::Invalid point';
+                    error = new Error('LocateButton::Invalid point');
                     this._locateError(error);
                     def.reject(error);
                 }
             } else {
-                error = 'LocateButton::Invalid position';
+                error = new Error('LocateButton::Invalid position');
                 this._locateError(error);
                 def.reject(error);
             }
@@ -347,9 +362,12 @@ function (
             // remove loading class
             this._hideLoading();
             // emit event error
-            this.emit("locate", {error:error || true});
-            // log in console
-            console.log(error);
+            this.emit("locate", {
+                graphic: null,
+                scale: null,
+                position: null,
+                error: error
+            });
         },
         _showLoading: function() {
             if (!this.get("useTracking")) {
