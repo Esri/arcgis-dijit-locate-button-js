@@ -202,7 +202,7 @@ function (
             var WatchId = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
                 this._setPosition(position);
             }), lang.hitch(this, function(error) {
-                this._logError(error);
+                this._locateError(error);
             }), this.get('geolocationOptions'));
             // set watch event
             this.set("watchId", WatchId);
@@ -214,11 +214,11 @@ function (
                 this._setPosition(position).then(lang.hitch(this, function(response) {
                     def.resolve(response);
                 }), lang.hitch(this, function(error) {
-                    this._logError(error);
+                    this._locateError(error);
                     def.reject(error);
                 }));
             }), lang.hitch(this, function(error) {
-                this._logError(error);
+                this._locateError(error);
                 def.reject(error);
             }), this.get('geolocationOptions'));
             // return deferred
@@ -248,20 +248,21 @@ function (
                     this._getCurrentPosition().then(lang.hitch(this, function(response) {
                         def.resolve(response);
                     }), lang.hitch(this, function(error) {
-                        this._logError(error);
+                        this._locateError(error);
                         def.reject(error);
                     }));
                 }
             } else {
-                this._hideLoading();
-                console.log('LocateButton::geolocation unsupported');
-                def.reject('LocateButton::geolocation unsupported');
+                var error = 'LocateButton::geolocation unsupported';
+                this._locateError(error);
+                def.reject(error);
             }
             this._setTitle();
             return def.promise;
         },
         _setPosition: function(position) {
             var def = new Deferred();
+            var error;
             // position returned
             if (position && position.coords) {
                 // point info
@@ -286,6 +287,7 @@ function (
                             var evt = this._locateEvent(pt, scale, position);
                             def.resolve(evt);
                         }), lang.hitch(this, function(error) {
+                            this._locateError(error);
                             def.reject(error);
                         }));
                     } else {
@@ -293,16 +295,14 @@ function (
                         def.resolve(evt);
                     }
                 } else {
-                    // remove loading class
-                    this._hideLoading();
-                    def.reject('LocateButton::Invalid point');
-                    console.log('LocateButton::Invalid point');
+                    error = 'LocateButton::Invalid point';
+                    this._locateError(error);
+                    def.reject(error);
                 }
             } else {
-                // remove loading class
-                this._hideLoading();
-                console.log('LocateButton::Invalid position');
-                def.reject('LocateButton::Invalid position');
+                error = 'LocateButton::Invalid position';
+                this._locateError(error);
+                def.reject(error);
             }
             return def.promise;
         },
@@ -343,16 +343,13 @@ function (
             // return event object
             return locateEvt;
         },
-        _logError: function(error) {
+        _locateError: function(error) {
             // remove loading class
             this._hideLoading();
-            // error info
-            var errorCode = error.code || "";
-            // error message
-            var errorMessage = error.message || "";
-            // error log
-            var e = 'LocateButton::' + errorCode + ":" + errorMessage;
-            console.log(e);
+            // emit event error
+            this.emit("locate", {error:error});
+            // log in console
+            console.log(error);
         },
         _showLoading: function() {
             if (!this.get("useTracking")) {
