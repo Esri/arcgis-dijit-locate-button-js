@@ -347,7 +347,7 @@ function (
             // remove loading class
             this._hideLoading();
             // emit event error
-            this.emit("locate", {error:error});
+            this.emit("locate", {error:error || true});
             // log in console
             console.log(error);
         },
