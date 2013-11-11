@@ -169,16 +169,14 @@ function (
         /* ---------------- */
         /* Private Functions */
         /* ---------------- */
-        _setTitle: function(){
-            if(this.get("useTracking")){
-                if(this.get("tracking")){
+        _setTitle: function() {
+            if (this.get("useTracking")) {
+                if (this.get("tracking")) {
                     domAttr.set(this._locateNode, "title", this._i18n.widgets.locateButton.locate.stopTracking);
-                }
-                else{
+                } else {
                     domAttr.set(this._locateNode, "title", this._i18n.widgets.locateButton.locate.tracking);
                 }
-            }  
-            else{
+            } else {
                 domAttr.set(this._locateNode, "title", this._i18n.widgets.locateButton.locate.title);
             }
         },
@@ -200,9 +198,16 @@ function (
             domClass.add(this._locateNode, this._css.tracking);
             this._removeWatchPosition();
             var WatchId = navigator.geolocation.watchPosition(lang.hitch(this, function(position) {
-                this._setPosition(position);
+                this._setPosition(position).then(lang.hitch(this, function(response) {
+                    this._locateEvent(response);
+                }), lang.hitch(this, function(error) {
+                    if (!error) {
+                        error = new Error("LocateButton::Error setting the position.");
+                    }
+                    this._locateError(error);
+                }));
             }), lang.hitch(this, function(error) {
-                if(!error){
+                if (!error) {
                     error = new Error("LocateButton::Could not get tracking position.");
                 }
                 this._locateError(error);
@@ -217,17 +222,15 @@ function (
                 this._setPosition(position).then(lang.hitch(this, function(response) {
                     def.resolve(response);
                 }), lang.hitch(this, function(error) {
-                    if(!error){
+                    if (!error) {
                         error = new Error("LocateButton::Error setting map position.");
                     }
-                    this._locateError(error);
                     def.reject(error);
                 }));
             }), lang.hitch(this, function(error) {
-                if(!error){
+                if (!error) {
                     error = new Error("LocateButton::Could not get current position.");
                 }
-                this._locateError(error);
                 def.reject(error);
             }), this.get('geolocationOptions'));
             // return deferred
@@ -255,9 +258,10 @@ function (
                     }
                 } else {
                     this._getCurrentPosition().then(lang.hitch(this, function(response) {
+                        this._locateEvent(response);
                         def.resolve(response);
                     }), lang.hitch(this, function(error) {
-                        if(!error){
+                        if (!error) {
                             error = new Error("LocateButton::Could not get current position.");
                         }
                         this._locateError(error);
@@ -287,6 +291,7 @@ function (
                     wkid: 4326
                 }));
                 if (pt) {
+                    var evt = this._createEvent(pt, scale, position);
                     // highlight enabled
                     // if setScale is enabled
                     if (this.get("setScale")) {
@@ -296,67 +301,67 @@ function (
                     if (this.get("centerAt")) {
                         // center on point
                         this.get("map").centerAt(pt).then(lang.hitch(this, function() {
-                            var evt = this._locateEvent(pt, scale, position);
                             def.resolve(evt);
                         }), lang.hitch(this, function(error) {
-                            if(!error){
+                            if (!error) {
                                 error = new Error("LocateButton::Could not center map.");
                             }
-                            this._locateError(error);
                             def.reject(error);
                         }));
                     } else {
-                        var evt = this._locateEvent(pt, scale, position);
                         def.resolve(evt);
                     }
                 } else {
                     error = new Error('LocateButton::Invalid point');
-                    this._locateError(error);
                     def.reject(error);
                 }
             } else {
                 error = new Error('LocateButton::Invalid position');
-                this._locateError(error);
                 def.reject(error);
             }
             return def.promise;
         },
-        _locateEvent: function(pt, scale, position) {
+        _createEvent: function(pt, scale, position) {
             // graphic attributes
             var attributes = {
                 position: position
             };
             // graphic variable
-            var g;
-            // if graphic currently on map
-            if (this.get("highlightGraphic")) {
-                g = this.get("highlightGraphic");
-                g.setGeometry(pt);
-                g.setAttributes(attributes);
-                g.setInfoTemplate(this.get("infoTemplate"));
-                g.setSymbol(this.get("symbol"));
-            } else {
-                // create graphic
-                g = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
-                // highlight enabled
-                if (this.get("highlightLocation")) {
-                    this.get("graphicsLayer").add(g);
-                }
-            }
-            // set highlight graphic
-            this.set("highlightGraphic", g);
-            // hide loading class
-            this._hideLoading();
+            var g = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
             // set event
             var locateEvt = {
                 graphic: g,
                 scale: scale,
                 position: position
             };
-            // emit event
-            this.emit("locate", locateEvt);
             // return event object
             return locateEvt;
+        },
+        _locateEvent: function(evt) {
+            // event graphic
+            if (evt.graphic) {
+                // get highlight graphic
+                var g = this.get("highlightGraphic");
+                // if graphic currently on map
+                if (g) {
+                    g.setGeometry(evt.graphic.geometry);
+                    g.setAttributes(evt.graphic.attributes);
+                    g.setInfoTemplate(evt.graphic.infoTemplate);
+                    g.setSymbol(evt.graphic.symbol);
+                } else {
+                    g = evt.graphic;
+                    // highlight enabled
+                    if (this.get("highlightLocation")) {
+                        this.get("graphicsLayer").add(g);
+                    }
+                }
+                // set highlight graphic
+                this.set("highlightGraphic", g);
+            }
+            // hide loading class
+            this._hideLoading();
+            // emit event
+            this.emit("locate", evt);
         },
         _locateError: function(error) {
             // remove loading class
