@@ -70,13 +70,12 @@
             
             myWidget = new LocateButton({
                 map: myMap,
-                useTracking: true
+                //useTracking: true
             }, "LocateButton");
             myWidget.startup();
             
             myWidget.on('locate', function(evt){
                 console.log(evt);
-                console.log(evt.graphic.geometry.x);
             });
             
 
