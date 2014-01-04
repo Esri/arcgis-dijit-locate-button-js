@@ -49,6 +49,7 @@ function (
             useTracking: false,
             setScale: true,
             centerAt: true,
+            timeout: 15000,
             geolocationOptions: {
                 maximumAge: 0,
                 timeout: 15000,
@@ -79,6 +80,7 @@ function (
             this.set("useTracking", defaults.useTracking);
             this.set("setScale", defaults.setScale);
             this.set("centerAt", defaults.centerAt);
+            this.set("timeout", defaults.timeout);
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
@@ -217,8 +219,15 @@ function (
         },
         _getCurrentPosition: function() {
             var def = new Deferred();
+            // time expired
+            var notNowTimeout = setTimeout(lang.hitch(this, function(){
+                clearTimeout(notNowTimeout);
+                var error = new Error("LocateButton::time expired for getting location.");
+                def.reject(error);
+            }), this.get("timeout"));
             // get location
             navigator.geolocation.getCurrentPosition(lang.hitch(this, function(position) {
+                clearTimeout(notNowTimeout);
                 this._setPosition(position).then(lang.hitch(this, function(response) {
                     def.resolve(response);
                 }), lang.hitch(this, function(error) {
