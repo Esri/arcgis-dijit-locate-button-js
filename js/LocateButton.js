@@ -4,6 +4,7 @@ define([
     "dojo/_base/lang",
     "dojo/has",
     "esri/kernel",
+    "esri/config",
     "dijit/_WidgetBase",
     "dijit/a11yclick",
     "dijit/_TemplatedMixin",
@@ -25,7 +26,7 @@ function (
     Evented,
     declare,
     lang,
-    has, esriNS,
+    has, esriNS, esriConfig,
     _WidgetBase, a11yclick, _TemplatedMixin,
     on,
     Deferred,
@@ -285,6 +286,36 @@ function (
             this._setTitle();
             return def.promise;
         },
+        _projectPoint: function(pt){
+            var def = new Deferred();
+            // map spatial reference
+            var sr = this.get("map").spatialReference;
+            // map spatial reference id
+            var wkid = sr.wkid;
+            // geometry service is set and point needs projection
+            if(esriConfig.defaults.geometryService && wkid !== 3857 && wkid !== 102100 && wkid !== 102113 && wkid !== 4326){
+                // project point
+                esriConfig.defaults.geometryService.project([pt], sr).then(lang.hitch(this, function(projectedPoints) {
+                    if(projectedPoints && projectedPoints.length){
+                        def.resolve(projectedPoints[0]);
+                    }
+                    else{
+                        def.reject(new Error("LocateButton::Point was not projected."));
+                    }
+                }), function(error){
+                    // projection error
+                    if (!error) {
+                        error = new Error("LocateButton::please specify a geometry service on esri/config to project.");
+                    }
+                    def.reject(error);
+                });
+            }
+            else{
+                // projection unnecessary
+                def.resolve(pt);
+            }
+            return def.promise;
+        },
         _setPosition: function(position) {
             var def = new Deferred();
             var error;
@@ -300,26 +331,35 @@ function (
                     wkid: 4326
                 }));
                 if (pt) {
-                    var evt = this._createEvent(pt, scale, position);
-                    // highlight enabled
-                    // if setScale is enabled
-                    if (this.get("setScale")) {
-                        // set scale
-                        this.get("map").setScale(scale);
-                    }
-                    if (this.get("centerAt")) {
-                        // center on point
-                        this.get("map").centerAt(pt).then(lang.hitch(this, function() {
+                    // project point
+                    this._projectPoint(pt).then(lang.hitch(this, function(projectedPoint){
+                        var evt = this._createEvent(projectedPoint, scale, position);
+                        // highlight enabled
+                        // if setScale is enabled
+                        if (this.get("setScale")) {
+                            // set scale
+                            this.get("map").setScale(scale);
+                        }
+                        if (this.get("centerAt")) {
+                            // center on point
+                            this.get("map").centerAt(projectedPoint).then(lang.hitch(this, function() {
+                                def.resolve(evt);
+                            }), lang.hitch(this, function(error) {
+                                if (!error) {
+                                    error = new Error("LocateButton::Could not center map.");
+                                }
+                                def.reject(error);
+                            }));
+                        } else {
                             def.resolve(evt);
-                        }), lang.hitch(this, function(error) {
-                            if (!error) {
-                                error = new Error("LocateButton::Could not center map.");
-                            }
-                            def.reject(error);
-                        }));
-                    } else {
-                        def.resolve(evt);
-                    }
+                        }
+                    }), lang.hitch(this, function(error){
+                        // projection error
+                        if (!error) {
+                            error = new Error("LocateButton::Error projecting point.");
+                        }
+                        def.reject(error);
+                    }));
                 } else {
                     error = new Error('LocateButton::Invalid point');
                     def.reject(error);
