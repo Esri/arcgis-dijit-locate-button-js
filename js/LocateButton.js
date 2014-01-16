@@ -19,8 +19,7 @@ define([
     "esri/geometry/Point",
     "esri/SpatialReference",
     "esri/graphic",
-    "esri/symbols/PictureMarkerSymbol",
-    "esri/layers/GraphicsLayer"
+    "esri/symbols/PictureMarkerSymbol"
 ],
 function (
     Evented,
@@ -33,8 +32,7 @@ function (
     dijitTemplate, i18n,
     domClass, domStyle, domAttr,
     Point, SpatialReference,
-    Graphic, PictureMarkerSymbol,
-    GraphicsLayer
+    Graphic, PictureMarkerSymbol
 ) {
     var Widget = declare([_WidgetBase, _TemplatedMixin, Evented], {
         declaredClass: "esri.dijit.LocateButton",
@@ -113,14 +111,6 @@ function (
                 this.destroy();
                 console.log('LocateButton::map required');
             }
-            // graphics layer
-            this.set("graphicsLayer", new GraphicsLayer());
-            // add graphics layer to the map
-            this.get("map").addLayer(this.get("graphicsLayer"));
-            // graphics remove highlight on clear
-            this._graphicsEvent = on(this.get("graphicsLayer"), 'graphics-clear', lang.hitch(this, function() {
-                this.set("highlightGraphic", null);
-            }));
             // when map is loaded
             if (this.get("map").loaded) {
                 this._init();
@@ -136,10 +126,6 @@ function (
             if (this._graphicsEvent) {
                 this._graphicsEvent.remove();
             }
-            // remove graphics layer
-            if (this.get("graphicsLayer") && this.get("map")) {
-                this.get("map").removeLayer(this.get("graphicsLayer"));
-            }
             // remove watch if there
             this._removeWatchPosition();
             // do other stuff
@@ -154,7 +140,11 @@ function (
         /* Public Functions */
         /* ---------------- */
         clear: function() {
-            this.get("graphicsLayer").clear();
+            var g = this.get("highlightGraphic");
+            if(g){
+                this.get("map").graphics.remove(g);
+                this.set("highlightGraphic", null);
+            }
         },
         locate: function() {
             // toggle tracking
@@ -401,7 +391,7 @@ function (
                     g = evt.graphic;
                     // highlight enabled
                     if (this.get("highlightLocation")) {
-                        this.get("graphicsLayer").add(g);
+                        this.get("map").graphics.add(g);
                     }
                 }
                 // set highlight graphic
