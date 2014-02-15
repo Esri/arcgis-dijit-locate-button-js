@@ -57,7 +57,7 @@
     <script src="http://js.arcgis.com/3.7/" type="text/javascript"></script>
     <script type="text/javascript">
         
-        require(["esri/map", "modules/LocateButton", "dojo/on", "esri/tasks/GeometryService"], function(Map, LocateButton, on, GeometryService){
+        require(["esri/map", "modules/LocateButton", "dojo/on", "esri/tasks/GeometryService", "esri/layers/GraphicsLayer"], function(Map, LocateButton, on, GeometryService, GraphicsLayer){
             
             
             esriConfig.defaults.geometryService = new GeometryService(location.protocol + "//utility.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer");
@@ -67,12 +67,17 @@
                 zoom: 3,
                 basemap: "streets"
             });
-
             
+            var myLayer = new GraphicsLayer({
+                id: "testLayer",
+                opacity: 0.5
+            });
+            myMap.addLayer(myLayer);
 
             
             myWidget = new LocateButton({
                 //useTracking: true,
+                graphicsLayer: myLayer,
                 map: myMap
             }, "LocateButton");
             myWidget.startup();

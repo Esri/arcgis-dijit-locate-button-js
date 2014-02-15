@@ -49,6 +49,7 @@ function (
             setScale: true,
             centerAt: true,
             timeout: 15000,
+            graphicsLayer: null,
             geolocationOptions: {
                 maximumAge: 0,
                 timeout: 15000,
@@ -80,6 +81,7 @@ function (
             this.set("setScale", defaults.setScale);
             this.set("centerAt", defaults.centerAt);
             this.set("timeout", defaults.timeout);
+            this.set("graphicsLayer", defaults.graphicsLayer);
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
@@ -142,7 +144,12 @@ function (
         clear: function() {
             var g = this.get("highlightGraphic");
             if(g){
-                this.get("map").graphics.remove(g);
+                if(this.get("graphicsLayer")){
+                    this.get("graphicsLayer").remove(g);
+                }
+                else{
+                    this.get("map").graphics.remove(g);   
+                }
                 this.set("highlightGraphic", null);
             }
         },
@@ -391,7 +398,12 @@ function (
                     g = evt.graphic;
                     // highlight enabled
                     if (this.get("highlightLocation")) {
-                        this.get("map").graphics.add(g);
+                        if(this.get("graphicsLayer")){
+                            this.get("graphicsLayer").add(g);
+                        }
+                        else{
+                            this.get("map").graphics.add(g);   
+                        }
                     }
                 }
                 // set highlight graphic
