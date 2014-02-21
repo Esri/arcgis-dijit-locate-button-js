@@ -142,10 +142,10 @@ function (
         /* Public Functions */
         /* ---------------- */
         clear: function() {
-            var g = this.get("highlightGraphic");
+            var g = this.get("highlightGraphic"), gl = this.get("graphicsLayer");
             if(g){
-                if(this.get("graphicsLayer")){
-                    this.get("graphicsLayer").remove(g);
+                if(gl){
+                    gl.remove(g);
                 }
                 else{
                     this.get("map").graphics.remove(g);   
@@ -387,7 +387,7 @@ function (
             // event graphic
             if (evt.graphic) {
                 // get highlight graphic
-                var g = this.get("highlightGraphic");
+                var g = this.get("highlightGraphic"), gl = this.get("graphicsLayer");
                 // if graphic currently on map
                 if (g) {
                     g.setGeometry(evt.graphic.geometry);
@@ -398,8 +398,8 @@ function (
                     g = evt.graphic;
                     // highlight enabled
                     if (this.get("highlightLocation")) {
-                        if(this.get("graphicsLayer")){
-                            this.get("graphicsLayer").add(g);
+                        if(gl){
+                            gl.add(g);
                         }
                         else{
                             this.get("map").graphics.add(g);   
