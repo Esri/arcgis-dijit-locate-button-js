@@ -3,9 +3,9 @@
 ## Features
 A simple dijit button that when clicked navigates to the users current location using HTML5 Geolocation if available.
 
-![App](https://raw.github.com/driskull/arcgis-dijit-locate-button-js/master/images/demo.png)
+![App](https://raw.github.com/esri/arcgis-dijit-locate-button-js/master/images/demo.png)
 
-[View Demo](http://driskull.github.com/arcgis-dijit-locate-button-js/)
+[View Demo](http://esri.github.com/arcgis-dijit-locate-button-js/)
 
 ## Instructions
 
