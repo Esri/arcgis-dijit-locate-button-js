@@ -11,8 +11,8 @@ define([
     "dojo/on",
     "dojo/Deferred",
     // load template
-    "dojo/text!application/dijit/templates/LocateButton.html",
-    "dojo/i18n!application/nls/jsapi",
+    "dojo/text!./dijit/templates/LocateButton.html",
+    "dojo/i18n!./nls/jsapi",
     "dojo/dom-class",
     "dojo/dom-style",
     "dojo/dom-attr",
@@ -34,8 +34,7 @@ function (
     Point, SpatialReference,
     Graphic, PictureMarkerSymbol
 ) {
-    var Widget = declare([_WidgetBase, _TemplatedMixin, Evented], {
-        declaredClass: "esri.dijit.LocateButton",
+    var Widget = declare("esri.dijit.LocateButton", [_WidgetBase, _TemplatedMixin, Evented], {
         templateString: dijitTemplate,
         options: {
             theme: "LocateButton",
