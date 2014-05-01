@@ -11,8 +11,8 @@ define([
     "dojo/on",
     "dojo/Deferred",
     // load template
-    "dojo/text!./dijit/templates/LocateButton.html",
-    "dojo/i18n!./nls/jsapi",
+    "dojo/text!application/dijit/templates/LocateButton.html",
+    "dojo/i18n!application/nls/jsapi",
     "dojo/dom-class",
     "dojo/dom-style",
     "dojo/dom-attr",
