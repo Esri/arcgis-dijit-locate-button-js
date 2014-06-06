@@ -437,6 +437,10 @@ function (
         _init: function() {
             this._visible();
             this._setTitle();
+            // start tracking if necessary
+            if(this.get("tracking") && this.get("useTracking")){
+                this._locate();
+            }
             this.set("loaded", true);
             this.emit("load", {});
         },
