@@ -45,6 +45,7 @@ function (
             infoTemplate: null,
             scale: null,
             useTracking: false,
+            clearOnTrackingStop: false,
             setScale: true,
             centerAt: true,
             timeout: 15000,
@@ -81,6 +82,7 @@ function (
             this.set("centerAt", defaults.centerAt);
             this.set("timeout", defaults.timeout);
             this.set("graphicsLayer", defaults.graphicsLayer);
+            this.set("clearOnTrackingStop", defaults.clearOnTrackingStop);
             // listeners
             this.watch("theme", this._updateThemeWatch);
             this.watch("visible", this._visible);
@@ -190,6 +192,10 @@ function (
         _stopTracking: function() {
             domClass.remove(this._locateNode, this._css.tracking);
             this._removeWatchPosition();
+            // remove point
+            if(this.get("clearOnTrackingStop")){
+                this.clear();
+            }
             // remove loading class
             this._hideLoading();
         },
