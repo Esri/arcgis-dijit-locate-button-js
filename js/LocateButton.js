@@ -327,6 +327,7 @@ function (
                     wkid: 4326
                 }));
                 if (pt) {
+                    this.set('recentPoint', pt);
                     // project point
                     this._projectPoint(pt).then(lang.hitch(this, function(projectedPoint){
                         var evt = this._createEvent(projectedPoint, scale, position);
