@@ -19,7 +19,8 @@ define([
     "esri/geometry/Point",
     "esri/SpatialReference",
     "esri/graphic",
-    "esri/symbols/PictureMarkerSymbol"
+    "esri/symbols/PictureMarkerSymbol",
+    "esri/tasks/ProjectParameters"
 ],
 function (
     Evented,
@@ -32,7 +33,7 @@ function (
     dijitTemplate, i18n,
     domClass, domStyle, domAttr,
     Point, SpatialReference,
-    Graphic, PictureMarkerSymbol
+    Graphic, PictureMarkerSymbol, ProjectParameters
 ) {
     var Widget = declare("esri.dijit.LocateButton", [_WidgetBase, _TemplatedMixin, Evented], {
         templateString: dijitTemplate,
@@ -303,8 +304,12 @@ function (
             var wkid = sr.wkid;
             // geometry service is set and point needs projection
             if(esriConfig.defaults.geometryService && wkid !== 3857 && wkid !== 102100 && wkid !== 102113 && wkid !== 4326){
+                // project parameters
+                var params = new ProjectParameters();
+                params.geometries = [pt];
+                params.outSR = sr;
                 // project point
-                esriConfig.defaults.geometryService.project([pt], sr).then(lang.hitch(this, function(projectedPoints) {
+                esriConfig.defaults.geometryService.project(params).then(lang.hitch(this, function(projectedPoints) {
                     if(projectedPoints && projectedPoints.length){
                         def.resolve(projectedPoints[0]);
                     }
