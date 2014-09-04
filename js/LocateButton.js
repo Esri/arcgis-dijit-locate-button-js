@@ -188,6 +188,7 @@ function (
                 // set watch event
                 this.set("watchId", null);
             }
+            this._removePrivateVars();
         },
         _stopTracking: function() {
             domClass.remove(this._locateNode, this._css.tracking);
@@ -220,8 +221,14 @@ function (
             // set watch event
             this.set("watchId", WatchId);
         },
+        _removePrivateVars: function(){
+            this._graphic = null;
+            this._position = null;
+            this._scale = null;
+        },
         _getCurrentPosition: function() {
             var def = new Deferred();
+            this._removePrivateVars();
             // time expired
             var notNowTimeout = setTimeout(lang.hitch(this, function(){
                 clearTimeout(notNowTimeout);
@@ -318,24 +325,63 @@ function (
             }
             return def.promise;
         },
-        _setPosition: function(position) {
-            var def = new Deferred();
-            var error;
-            // position returned
-            if (position && position.coords) {
+        _getScale: function(position){
+            var scale;
+            var defaultScale = 50000;
+            var widgetScale = this.get("scale");
+            if(position && position.coords){
+                scale = widgetScale || position.coords.accuracy || defaultScale;
+            }
+            else{
+                scale = widgetScale || defaultScale;
+            }
+            return scale;
+        },
+        _createPoint: function(position){
+            var pt;
+            if(position && position.coords){
                 // point info
                 var latitude = position.coords.latitude;
                 var longitude = position.coords.longitude;
-                // scale info
-                var scale = this.get("scale") || position.coords.accuracy || 50000;
                 // set point
-                var pt = new Point([longitude, latitude], new SpatialReference({
+                pt = new Point([longitude, latitude], new SpatialReference({
                     wkid: 4326
                 }));
+            }
+            return pt;
+        },
+        _setPosition: function(position) {
+            var def = new Deferred();
+            var error, g;
+            this._removePrivateVars();
+            // store position for event
+            this._position = position;
+            // position returned
+            if (position && position.coords) {
+                var pt = this._createPoint(position);
+                if(pt){
+                    // create graphic
+                    g = this._createGraphic(pt, position);
+                    // store graphic for event
+                    this._graphic = g;
+                }
+                // scale info
+                var scale = this._getScale(position);
+                // store scale for event
+                this._scale = scale;
                 if (pt) {
                     // project point
                     this._projectPoint(pt).then(lang.hitch(this, function(projectedPoint){
-                        var evt = this._createEvent(projectedPoint, scale, position);
+                        // create graphic
+                        g = this._createGraphic(projectedPoint, position);
+                        // store graphic for event
+                        this._graphic = g;
+                        // set event
+                        var evt = {
+                            graphic: g,
+                            scale: scale,
+                            position: position
+                        };
                         // highlight enabled
                         // if setScale is enabled
                         if (this.get("setScale")) {
@@ -372,21 +418,17 @@ function (
             }
             return def.promise;
         },
-        _createEvent: function(pt, scale, position) {
-            // graphic attributes
-            var attributes = {
-                position: position
-            };
-            // graphic variable
-            var g = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
-            // set event
-            var locateEvt = {
-                graphic: g,
-                scale: scale,
-                position: position
-            };
-            // return event object
-            return locateEvt;
+        _createGraphic: function(pt, position){
+            var g;
+            if(pt){
+                // graphic attributes
+                var attributes = {
+                    position: position
+                };
+                // graphic variable
+                g = new Graphic(pt, this.get("symbol"), attributes, this.get("infoTemplate"));
+            }
+            return g;
         },
         _locateEvent: function(evt) {
             // event graphic
@@ -420,15 +462,16 @@ function (
             this.emit("locate", evt);
         },
         _locateError: function(error) {
+            var evt = {
+                graphic: this._graphic,
+                scale: this._scale,
+                position: this._position,
+                error: error
+            };
             // remove loading class
             this._hideLoading();
             // emit event error
-            this.emit("locate", {
-                graphic: null,
-                scale: null,
-                position: null,
-                error: error
-            });
+            this.emit("locate", evt);
         },
         _showLoading: function() {
             if (!this.get("useTracking")) {
