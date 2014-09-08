@@ -16,6 +16,7 @@ define([
     "dojo/dom-class",
     "dojo/dom-style",
     "dojo/dom-attr",
+    "esri/geometry/webMercatorUtils",
     "esri/geometry/Point",
     "esri/SpatialReference",
     "esri/graphic",
@@ -32,7 +33,7 @@ function (
     Deferred,
     dijitTemplate, i18n,
     domClass, domStyle, domAttr,
-    Point, SpatialReference,
+    webMercatorUtils, Point, SpatialReference,
     Graphic, PictureMarkerSymbol, ProjectParameters
 ) {
     var Widget = declare("esri.dijit.LocateButton", [_WidgetBase, _TemplatedMixin, Evented], {
@@ -302,8 +303,13 @@ function (
             var sr = this.get("map").spatialReference;
             // map spatial reference id
             var wkid = sr.wkid;
-            // geometry service is set and point needs projection
-            if(esriConfig.defaults.geometryService && wkid !== 3857 && wkid !== 102100 && wkid !== 102113 && wkid !== 4326){
+            // map is web mercator projection and pt is lat/lon
+            if(sr.isWebMercator()){
+                var mp = webMercatorUtils.geographicToWebMercator(pt);
+                def.resolve(mp);
+            }
+            // geometry service is set and point needs projection (map is not lat/lon)
+            else if(esriConfig.defaults.geometryService && wkid !== 4326){
                 // project parameters
                 var params = new ProjectParameters();
                 params.geometries = [pt];
@@ -325,7 +331,7 @@ function (
                 });
             }
             else{
-                // projection unnecessary
+                // projection unnecessary. Either map and point are lat/lon or no geometry service set
                 def.resolve(pt);
             }
             return def.promise;
