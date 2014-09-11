@@ -1,4 +1,5 @@
 define([
+    "require",
     "dojo/Evented",
     "dojo/_base/declare",
     "dojo/_base/lang",
@@ -24,6 +25,7 @@ define([
     "esri/tasks/ProjectParameters"
 ],
 function (
+    require,
     Evented,
     declare,
     lang,
