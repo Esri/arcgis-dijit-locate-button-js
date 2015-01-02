@@ -45,7 +45,7 @@ function (
             map: null,
             visible: true,
             highlightLocation: true,
-            symbol: new PictureMarkerSymbol(require.toUrl("esri/dijit") + '/images/sdk_gps_location.png', 28, 28),
+            symbol: new PictureMarkerSymbol(require.toUrl(".") + '/../images/sdk_gps_location.png', 28, 28),
             infoTemplate: null,
             scale: null,
             useTracking: false,
